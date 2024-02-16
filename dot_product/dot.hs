@@ -15,10 +15,3 @@ listMultiplication (x:xs) (y:ys) = x * y : listMultiplication xs ys
 
 mulResult = listMultiplication arr1 arr2
 
-mat1 = [[(1+i)..(5+i)] | i <- [1..5]]
-mat2 = [reverse [(1+i)..(5+i)] | i <- reverse [1..5]]
-
-matMul :: [[Int]] -> [[Int]] -> [[Int]]
-
--- TODO
-matMul x:xs y = x * y + matMul xs y
