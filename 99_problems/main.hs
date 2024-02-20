@@ -141,3 +141,34 @@ diff_select :: Int -> Int -> IO [Int]
 diff_select n m = do
     gen <- getStdGen
     return $ take n $ deduplicate [] [x | x <- randomRs (1, m) gen]
+
+isAsc :: Ord a => [a] -> Bool
+isAsc (x:y:rest) = x <= y && isAsc (y:rest) -- kontrola, ze to plati pro 1. a 2. prvek && 2. a 3. && 3. a 4. && 4. ...  
+isAsc (_:[]) = True -- konec rekurze s 1 prvkem v seznamu
+isAsc [] = True     -- zajisteni, ze funkce funguje i na prazdny seznam
+
+quicksort :: Ord a => [a] -> [a]
+quicksort [] = []
+quicksort [x] = [x]
+quicksort x = quicksort smaller ++ quicksort larger -- spojeni vetsi a mensi poloviny (spis merge sort...)
+    where median = x !! (div (length x) 2) -- urceni pseudo-medianu (neidealni casova slozitost)
+          larger = filter (> median) x     -- vyfiltrovani vecich elementu nez median (neidealni casova slozitost)
+          smaller = filter (<= median) x   -- vyfiltrovani mencich elementu nez median (neidealni casova slozitost)
+
+dropEvery1 :: [a] -> Int -> [a]
+dropEvery1 xs n = start ++ (if null end then [] else dropEvery1 end n) -- zacatek a budto jiz end je prazdny - konec rekurze, nebo neni prazdny - rekurze
+    where start = take n xs   -- start obsahuje n elementu na zacatku seznamu
+          end = drop (n+1) xs -- end obsahuje vsechny elementy az na zacatecnich n+1
+
+splitOn :: Eq a => a -> [a] -> [[a]]
+splitOn c xs = [start, end] -- hledany znak neni soucasti vysledku
+    where start = takeWhile (/= c) xs  -- start obsahuje vsechny elementy pred vyskytem hledaneho znaku
+          end = drop ((length start) + 1) xs -- end obsahuje zbytek elementu za hledanym znakem
+
+isPalindrome :: Eq a => [a] -> Bool
+isPalindrome xs = start == reverse end -- porovnani prvni poloviny a obracene druhe poloviny retezce
+    where len = length xs
+          half = div len 2 -- Int division
+          start = take half xs
+          odd = mod len 2 -- pokud je delka licha, prostredni znak neni treba porovnavat
+          end = drop (half+odd) xs

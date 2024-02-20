@@ -8,15 +8,20 @@ elem' (x:xs) (y) = if x == y then True else elem' xs y
 nd [] = []
 nd (x:xs) = if elem' (nd xs) x then nd xs else x : nd xs
 
-nd_helper x [] = x
-nd_helper x (y:ys) = if elem' x y then nd_helper x ys else nd_helper (reverse (y : reverse x)) ys
+nd_helper xs [] = []
+nd_helper xs (y:ys) = if elem' xs y then nd_helper xs ys else y:(nd_helper (y:xs) ys)
 
 nd' [] = []
-nd' (x:xs) = nd_helper (x:[]) (xs)
+nd' (x:xs) = x : (nd_helper (x:[]) (xs))
 
-{-
-nd' [] = []
-nd' (x:xs) 
-    | elem' xs x = nd' xs
-    | otherwise = x : (nd' xs)
-    -}
+
+--nd' [] = []
+--nd' (x:xs) 
+--    | elem' xs x = nd' xs
+--    | otherwise = x : (nd' xs)
+
+
+ncd (x:xs)
+    | xs == [] = [x]
+    | x == head xs = ncd xs
+    | otherwise = x : ncd xs
