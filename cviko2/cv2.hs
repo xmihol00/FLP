@@ -19,5 +19,9 @@ isSomething _ = False
 getJust (Just a) = a
 
 activity l p = answer  
-    where found = find (\x -> (fst x) == l) p
-          answer = if isSomething found then if snd (getJust found) < 5 then Right (snd (getJust found) + 1) else Left "max points" else Left "unknown login"
+    where found = Map.lookup l p
+          answer = if isSomething found then 
+                        if (getJust found) < 5 
+                        then Right ((getJust found) + 1) 
+                        else Left "max points" 
+                   else Left "unknown login"
