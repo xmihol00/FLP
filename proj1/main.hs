@@ -1,3 +1,7 @@
+--import Data.Text.Lazy (Text)
+import Data.Text.Lazy (pack)
+import Data.Text.Lazy.Read (decimal, signed)
+
 --module Main (main) where
 --import Tree (BinaryTree(Node, Leaf))
 
@@ -12,6 +16,11 @@ indentHelper input line =  if verified_spaces then branchHelper trimmed line els
 branchHelper ('N':'o':'d':'e':':':rest) line = rest
 branchHelper ('L':'e':'a':'f':':':rest) line = rest
 branchHelper _ _ = error ("Unexpected key word at")
+
+decimalOrError input = y
+    where num = decimal $ pack input
+          (Left x) = num
+          (Right y) = num
 
 leafHelper input line = Leaf input
 
