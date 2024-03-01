@@ -93,10 +93,14 @@ traverseTree Leaf {..} _ = className
 utf8Print :: String -> IO ()
 utf8Print = T.putStrLn . T.pack
 
+
 parseValuesLine str
-    | skipWhiteSpaces str == last str:[] = []
-    | otherwise = value:parseValuesLine rest
-        where (value, rest) = doubleOrError str 0
+    | head end == '\n' = ([], tail end)
+    | end == [] = ([], [])
+    | otherwise = (value:values, rest)
+    where (value, restDouble) = doubleOrError str 0
+          (values, rest) = parseValuesLine restDouble
+          end = skipWhiteSpaces rest
 
 --parseArgs args
 --    | length args == 2 = T.putStrLn "2 args"
