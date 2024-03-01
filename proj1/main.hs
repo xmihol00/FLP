@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE InstanceSigs #-}
 
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Read as TL
@@ -12,10 +11,8 @@ import qualified Data.Text as T
 data BinaryTree = Node { key :: Int, threshold :: Double, left :: BinaryTree, right :: BinaryTree} | Leaf { className :: String }
 
 instance Read BinaryTree where
-    readsPrec :: Int -> ReadS BinaryTree
     readsPrec _ input = [readTree input 0]
 instance Show BinaryTree where
-    show :: BinaryTree -> String
     show tree = treeString
         where treeString = init $ showBinaryTree tree 0
 
@@ -39,11 +36,14 @@ takeRestOfText = span (\x -> x /= '\n' && x /= ' ' && x /= '\t')
 skipWhiteSpaces :: String -> String
 skipWhiteSpaces = dropWhile (\x -> x == ' ' || x == '\t')
 
+skipWhiteSpacesAndNewLines :: [Char] -> [Char]
+skipWhiteSpacesAndNewLines = dropWhile (\x -> x == ' ' || x == '\t' || x == '\n')
+
 takeErrorSample :: String -> String
 takeErrorSample = takeWhile (/= '\n') . take 16
 
 myError :: (Show a1, Num a1) => a1 -> [Char] -> a2
-myError line text = error ("\nLine " ++ (show $ line + 1) ++ ": " ++ text ++ "\n")
+myError line text = error ("\nLine " ++ show (line + 1) ++ ": " ++ text ++ "\n")
 
 readTree :: String -> Int -> (BinaryTree, String)
 readTree ('N':'o':'d':'e':':':values) line = (Node parsedIndex parsedThreshold leftNode rightNode, restRight)
@@ -63,7 +63,7 @@ readTree ('N':'o':'d':'e':':':values) line = (Node parsedIndex parsedThreshold l
 readTree ('L':'e':'a':'f':':':values) _ = (Leaf className, rest)
     where trimmed = skipWhiteSpaces values
           (className, rest) = takeRestOfText trimmed
-readTree wrong line = myError line ("Unexpected key word at: '" ++ takeErrorSample wrong ++ "...'")
+readTree wrong line = myError line $ "Unexpected key word at: '" ++ takeErrorSample wrong ++ "...'"
 
 checkRemoveIndent :: String -> Int -> String
 checkRemoveIndent input line = trimmed
@@ -74,13 +74,13 @@ checkRemoveIndent input line = trimmed
 decimalOrError :: String -> Int -> (Int, String)
 decimalOrError input line = (num, rest)
     where numMaybe = TL.decimal $ TL.pack $ skipWhiteSpaces input
-          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else myError line  ("Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number.")
+          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else myError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number."
           rest = TL.unpack restPacked
 
 doubleOrError :: String -> Int -> (Double, String)
 doubleOrError input line = (num, rest)
     where numMaybe = TL.double $ TL.pack $ skipWhiteSpaces input
-          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else myError line  ("Unable to parse '" ++ takeErrorSample input ++ "...' as a floating point number.")
+          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else myError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a floating point number."
           rest = TL.unpack restPacked
 
 traverseTree :: BinaryTree -> [Double] -> String
@@ -90,17 +90,40 @@ traverseTree Node {..} (thresholdHead:thresholds)
 traverseTree Node {..} _ = error "Not enough values entered to perform classification."
 traverseTree Leaf {..} _ = className
 
+traverseTreeMultiple :: BinaryTree -> [[Double]] -> [Char]
+traverseTreeMultiple tree (row:rows)
+    | null rows = traverseTree tree row
+    | otherwise = traverseTree tree row ++ "\n" ++ traverseTreeMultiple tree rows
+traverseTreeMultiple _ [] = ""
+
 utf8Print :: String -> IO ()
 utf8Print = T.putStrLn . T.pack
 
-
-parseValuesLine str
-    | head end == '\n' = ([], tail end)
-    | end == [] = ([], [])
+parseValuesLine :: String -> Int -> ([Double], String)
+parseValuesLine str line
+    | end = ([value], restSpaces2)
     | otherwise = (value:values, rest)
-    where (value, restDouble) = doubleOrError str 0
-          (values, rest) = parseValuesLine restDouble
-          end = skipWhiteSpaces rest
+    where (value, restDouble) = doubleOrError str line
+          restSpaces1 = skipWhiteSpaces restDouble
+          restComma
+            | null restSpaces1 || head restSpaces1 == '\n' = restSpaces1
+            | head restSpaces1 == ',' = tail restSpaces1
+            | otherwise = myError line $ "Comma expected at: '" ++ takeErrorSample restSpaces1 ++ "...'"
+          restSpaces2 = skipWhiteSpaces restComma
+          end = null restSpaces2 || head restSpaces2 == '\n'
+          (values, rest) = parseValuesLine restSpaces2 $ line + 1
+
+parseValues :: String -> Int -> ([[Double]], String)
+parseValues str line
+    | null $ skipWhiteSpacesAndNewLines str = ([], [])
+    | otherwise = (parsedRow:parsedRows, restLines)
+    where (parsedRow, restLine) = parseValuesLine str line
+          nextRow
+            | null restLine = restLine
+            | head restLine == '\n' = tail restLine
+            | otherwise = myError line $ "Unexpected character at: '" ++ takeErrorSample restLine ++ "...'"
+          (parsedRows, restLines) = parseValues nextRow $ line + 1
+
 
 --parseArgs args
 --    | length args == 2 = T.putStrLn "2 args"
@@ -109,7 +132,10 @@ parseValuesLine str
 main :: IO ()
 main = do
     --args  <- getArgs
-    input <- readFile "trees/example1.txt"
-    let [(tree, _)] = reads input :: [(BinaryTree, String)]
-    utf8Print $ traverseTree tree [2.4, 1.3]
+    treeInput <- readFile "trees/example1.txt"
+    valuesInput <- readFile "values/example1.txt"
+    let [(tree, _)] = reads treeInput :: [(BinaryTree, String)]
+    let (values, _) = parseValues valuesInput 0
     utf8Print $ show tree
+    utf8Print $ show values
+    utf8Print $ traverseTreeMultiple tree values
