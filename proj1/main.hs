@@ -93,12 +93,18 @@ traverseTree Leaf {..} _ = className
 utf8Print :: String -> IO ()
 utf8Print = T.putStrLn . T.pack
 
+parseValuesLine str
+    | skipWhiteSpaces str == last str:[] = []
+    | otherwise = value:parseValuesLine rest
+        where (value, rest) = doubleOrError str 0
+
 --parseArgs args
 --    | length args == 2 = T.putStrLn "2 args"
 --    | length args == 3 = T.putStrLn "3 args"
 
 main :: IO ()
 main = do
+    --args  <- getArgs
     input <- readFile "trees/example1.txt"
     let [(tree, _)] = reads input :: [(BinaryTree, String)]
     utf8Print $ traverseTree tree [2.4, 1.3]
