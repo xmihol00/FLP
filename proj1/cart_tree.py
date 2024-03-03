@@ -8,6 +8,8 @@ import pandas as pd
 # Usage: python cart_tree.py <dataset_name> 
 # dataset names: tree1, tree2, tree3, penguins, wines
 
+MAX_DEPTH = 6
+
 training_data = {
     "tree1": np.array([
         [2.4, 1.3, "TřídaA"],
@@ -1652,8 +1654,12 @@ class Node:
         self.left = left
         self.right = right
 
-def create_tree(training_data, features):
-    print(features)
+def create_tree(training_data, features, max_depth=None):
+    if max_depth is not None:
+        if max_depth == 0:
+            return max(set([x[0] for x in features]), key=[x[0] for x in features].count)
+        max_depth -= 1
+
     if len(set([x[0] for x in features])) == 1:
         return features[0][0]
     
@@ -1673,10 +1679,9 @@ def create_tree(training_data, features):
                 best_right = right
                 best_idx = i
 
-    print(best_idx, best_gini, best_threshold, end="\n\n")
     node = Node(best_idx, best_threshold, None, None)
-    node.left = create_tree(training_data, best_left)
-    node.right = create_tree(training_data, best_right)
+    node.left = create_tree(training_data, best_left, max_depth)
+    node.right = create_tree(training_data, best_right, max_depth)
     return node
 
 def print_tree(tree, indent=0):
@@ -1696,7 +1701,7 @@ if __name__ == "__main__":
     label_map = {label: i for i, label in enumerate(sorted(set(y)))}
     y = np.array([label_map[label] for label in y])
 
-    clf = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier(max_depth=MAX_DEPTH)
     clf.fit(X, y)
 
     class_names = list(label_map.keys())
@@ -1705,7 +1710,7 @@ if __name__ == "__main__":
     training_data = data[:, :features_count].T.astype(float)
     features = data[:, -1].flatten()
     features = [(features[i], i) for i in range(len(features))]
-    tree = create_tree(training_data, features)
+    tree = create_tree(training_data, features, MAX_DEPTH)
     print_tree(tree)
 
     exit(0)

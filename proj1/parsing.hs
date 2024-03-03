@@ -1,16 +1,18 @@
 module Parsing (
-    isRight, 
-    takeRestOfText, 
-    skipWhiteSpaces, 
-    skipWhiteSpacesAndNewLines, 
-    formattedError, 
-    takeErrorSample, 
+    isRight,
+    takeRestOfText,
+    skipWhiteSpaces,
+    skipWhiteSpacesAndNewLines,
+    formattedError,
+    takeErrorSample,
     utf8Print,
     trim,
     split,
     checkRemoveIndent,
     decimalOrError,
+    decimalOrLineError,
     doubleOrError,
+    doubleOrLineError,
     parseValues
 ) where
 import qualified Data.Char as C
@@ -61,23 +63,31 @@ checkRemoveIndent input line = trimmed
           check = all (==' ') spaces || formattedError line ("Wrong indent at line " ++ show line ++ ", unexpected indent.")
           trimmed = if check then trimmedUnchecked else ""
 
-decimalOrError :: String -> Int -> (Int, String)
-decimalOrError input line = (num, rest)
-    where numMaybe = TL.decimal $ TL.pack $ skipWhiteSpaces input
-          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number."
+numberOrError :: String -> (TL.Text -> Either a1 (a2, TL.Text)) -> Either a1 (a2, TL.Text) -> (a2, String)
+numberOrError input parser maybeError = (num, rest)
+    where numMaybe = parser $ TL.pack $ skipWhiteSpaces input
+          (Right (num, restPacked))
+            | isRight numMaybe = numMaybe
+            | otherwise = maybeError
           rest = TL.unpack restPacked
 
-doubleOrError :: String -> Int -> (Double, String)
-doubleOrError input line = (num, rest)
-    where numMaybe = TL.double $ TL.pack $ skipWhiteSpaces input
-          (Right (num, restPacked)) = if isRight numMaybe then numMaybe else formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a floating point number."
-          rest = TL.unpack restPacked
+decimalOrError :: Integral a => String -> Either String (a, TL.Text) -> (a, String)
+decimalOrError input = numberOrError input TL.decimal
+
+decimalOrLineError :: String -> Int -> (Int, String)
+decimalOrLineError input line = decimalOrError input (formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number.")
+
+doubleOrError :: String -> Either String (Double, TL.Text) -> (Double, String)
+doubleOrError input = numberOrError input TL.double
+
+doubleOrLineError :: String -> Int -> (Double, String)
+doubleOrLineError input line = doubleOrError input (formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a floating point number.")
 
 parseValuesLine :: String -> Int -> ([Double], String)
 parseValuesLine str line
     | end = ([value], restSpaces2)
     | otherwise = (value:values, rest)
-    where (value, restDouble) = doubleOrError str line
+    where (value, restDouble) = doubleOrLineError str line
           restSpaces1 = skipWhiteSpaces restDouble
           restComma
             | null restSpaces1 || head restSpaces1 == '\n' = restSpaces1
@@ -97,4 +107,3 @@ parseValues str line
             | head restLine == '\n' = tail restLine
             | otherwise = formattedError line $ "Unexpected character at: '" ++ takeErrorSample restLine ++ "...'"
           (parsedRows, restLines) = parseValues nextRow $ line + 1
-          

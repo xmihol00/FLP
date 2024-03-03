@@ -6,6 +6,7 @@ module Tree (
     traverseTreeMultiple,
     loadTrainCSV,
     trainTree,
+    trainTreeMaxDepth
 ) where
 
 import qualified Data.List as L
@@ -17,8 +18,8 @@ import Parsing (
     trim, 
     split, 
     checkRemoveIndent, 
-    decimalOrError, 
-    doubleOrError, 
+    decimalOrLineError, 
+    doubleOrLineError, 
     )
 
 data BinaryTree = Node { index :: Int, threshold :: Double, leftTree :: BinaryTree, rightTree :: BinaryTree} | Leaf { className :: String }
@@ -42,11 +43,11 @@ showBinaryTree (Leaf className) depth = indent ++ "Leaf: " ++ className ++ "\n"
 readTree :: String -> Int -> (BinaryTree, String)
 readTree ('N':'o':'d':'e':':':values) line = (Node parsedIndex parsedThreshold leftNode rightNode, restRight)
     where trimmed = skipWhiteSpaces values
-          (parsedIndex, restIndex) = decimalOrError trimmed line
+          (parsedIndex, restIndex) = decimalOrLineError trimmed line
           (x:restSpaces) = skipWhiteSpaces restIndex
           check = (x == ',') || formattedError line ("Comma expected at: '" ++ takeErrorSample (x:restSpaces) ++ "...'")
           (parsedThreshold, restThreshold)
-            | check = doubleOrError restSpaces line 
+            | check = doubleOrLineError restSpaces line 
             | otherwise = (0, "") -- dummy
           (y:nextLineLeft) = skipWhiteSpaces restThreshold
           nextLineNum
@@ -103,7 +104,7 @@ loadTrainCSV strData separator = (featuresDouble, trimmedClasses)
           (features, classes)
             | allSameCols = unzip [splitAt colCount $ split separator row | row <- rows]
             | otherwise = error "Entered CSV file does not have a valid structure, some rows have more columns than other."
-          featuresDouble = L.transpose [map (\x -> fst $ doubleOrError x line) featureRow | (featureRow, line) <- zip features [0, 1 ..]]
+          featuresDouble = L.transpose [map (\x -> fst $ doubleOrLineError x line) featureRow | (featureRow, line) <- zip features [0, 1 ..]]
           trimmedClasses = [(trim $ head classRow, idx) | (classRow, idx) <- zip classes [0, 1 ..]]
 
 creteThresholds :: [[Double]] -> [[Double]]
@@ -116,11 +117,17 @@ reduce _ best [] = best
 reduce op best [x] = if op best x then best else x
 reduce op best (x:rest) = if op best x then reduce op best rest else reduce op x rest
 
-trainTree :: ([[Double]], [(String, Int)]) -> BinaryTree
-trainTree (features, classes)
+mostOccurrences :: Ord a => [a] -> a
+mostOccurrences list = fst $ reduce (\x y -> snd x >= snd y) (head pairs) (tail pairs)
+    where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
+
+trainTreeMaxDepth :: ([[Double]], [(String, Int)]) -> Int -> BinaryTree
+trainTreeMaxDepth (features, classes) depth
+    | depth == 0 = Leaf (mostOccurrences classNames)
     | length (L.nub classNames) == 1 = Leaf (head classNames)
-    | otherwise = Node bestFeatureIdx bestThreshold (trainTree (features, bestLeftClasses)) (trainTree (features, bestRightClasses))
-    where (classNames, indices) = unzip classes
+    | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMaxDepth (features, bestLeftClasses) nextDepth) (trainTreeMaxDepth (features, bestRightClasses) nextDepth)
+    where nextDepth = depth - 1
+          (classNames, indices) = unzip classes
           selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
           thresholdTable = creteThresholds selectedFeatureTable
           classesSplit = \op -> [[[classPair 
@@ -134,3 +141,6 @@ trainTree (features, classes)
                             | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
           flatGini = concat giniTable
           (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = reduce (\(x, _, _, _, _) (y, _, _, _, _) -> x <= y) (head flatGini) (tail flatGini)
+
+trainTree :: ([[Double]], [(String, Int)]) -> BinaryTree
+trainTree trainingData = trainTreeMaxDepth trainingData (length $ snd trainingData)
