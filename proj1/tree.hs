@@ -20,6 +20,7 @@ import Parsing (
     decimalOrError, 
     doubleOrError, 
     )
+import Debug.Trace
 
 data BinaryTree = Node { index :: Int, threshold :: Double, leftTree :: BinaryTree, rightTree :: BinaryTree} | Leaf { className :: String }
 
@@ -118,8 +119,8 @@ reduce op best (x:rest) = if op best x then reduce op best rest else reduce op x
 
 trainTree :: ([[Double]], [(String, Int)]) -> BinaryTree
 trainTree (features, classes)
-    | length (L.nub classNames) == 1 = Leaf (head classNames)
-    | otherwise = Node bestFeatureIdx bestThreshold (trainTree (features, bestLeftClasses)) (trainTree (features, bestRightClasses))
+    | length (L.nub classNames) == 1 = trace ((show classes) ++ " --leaf") $ Leaf (head classNames)
+    | otherwise = trace ((show classes)) $ Node bestFeatureIdx bestThreshold (trainTree (features, trace ((show (bestFeatureIdx, bestGini, bestThreshold)) ++ "\n") bestLeftClasses)) (trainTree (features, trace ((show (bestFeatureIdx, bestGini, bestThreshold)) ++ "\n") bestRightClasses))
     where (classNames, indices) = unzip classes
           selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
           thresholdTable = creteThresholds selectedFeatureTable
@@ -133,4 +134,4 @@ trainTree (features, classes)
                         | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds] 
                             | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
           flatGini = concat giniTable
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = reduce (\(x, _, _, _, _) (y, _, _, _, _) -> x < y) (head flatGini) (tail flatGini)
+          (bestGini, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = reduce (\(x, _, _, _, _) (y, _, _, _, _) -> x <= y) (head flatGini) (tail flatGini)

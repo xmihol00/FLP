@@ -1584,9 +1584,8 @@ class Node:
         self.right = right
 
 def create_tree(training_data, features):
-    if features is None:
-        return None
-    elif len(set([x[0] for x in features])) == 1:
+    print(features)
+    if len(set([x[0] for x in features])) == 1:
         return features[0][0]
     
     best_gini = float("inf")
@@ -1605,7 +1604,7 @@ def create_tree(training_data, features):
                 best_right = right
                 best_idx = i
 
-    print(best_gini, best_threshold, best_left, best_right, best_idx)
+    print(best_idx, best_gini, best_threshold, end="\n\n")
     node = Node(best_idx, best_threshold, None, None)
     node.left = create_tree(training_data, best_left)
     node.right = create_tree(training_data, best_right)
