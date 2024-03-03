@@ -1,0 +1,23 @@
+Node: 0, 38.95
+  Node: 0, 37.650000000000006
+    Node: 0, 36.0
+      Leaf: Biscoe
+      Leaf: Dream
+    Node: 2, 187.5
+      Leaf: Biscoe
+      Leaf: Dream
+  Node: 0, 39.5
+    Node: 2, 195.5
+      Leaf: Torgersen
+      Leaf: Dream
+    Node: 2, 192.5
+      Node: 1, 17.700000000000003
+        Node: 2, 180.0
+          Leaf: Dream
+          Leaf: Torgersen
+        Leaf: Dream
+      Node: 1, 20.2
+        Node: 4, 1.0
+          Leaf: Torgersen
+          Leaf: Dream
+        Leaf: Torgersen

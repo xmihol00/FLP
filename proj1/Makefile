@@ -1,5 +1,5 @@
 CC=ghc
-CFLAGS=-Wall
+CFLAGS=-Wall -Wextra
 SRC=*.hs
 
 .PHONY: all
