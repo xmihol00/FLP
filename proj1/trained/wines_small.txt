@@ -1,0 +1,29 @@
+Node: 10, 9.850000000000001
+  Node: 10, 8.65
+    Leaf: 4
+    Node: 0, 5.1
+      Leaf: 4
+      Node: 4, 0.228
+        Leaf: 5
+        Leaf: 6
+  Node: 9, 0.53
+    Node: 0, 7.25
+      Leaf: 5
+      Leaf: 7
+    Node: 4, 6.7e-2
+      Node: 0, 6.35
+        Leaf: 4
+        Leaf: 7
+      Node: 4, 9.85e-2
+        Node: 2, 6.0000000000000005e-2
+          Node: 5, 8.5
+            Leaf: 6
+            Leaf: 7
+          Node: 1, 0.405
+            Node: 4, 8.85e-2
+              Leaf: 6
+              Leaf: 7
+            Node: 5, 4.5
+              Leaf: 6
+              Leaf: 5
+        Leaf: 6
