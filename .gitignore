@@ -3,4 +3,7 @@
 hello_world/hello_world
 flp-fun
 *.png
-*.csv
+penguins.csv
+wines.csv
+boston_housing.csv
+*.tmp
