@@ -122,6 +122,7 @@ mostOccurrences :: Ord a => [a] -> a
 mostOccurrences list = fst $ foldr1 (\x y -> if snd x >= snd y then x else y) pairs
     where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
 
+-- inefficient training, generates all possible solutions for each node and then reduces them to the best one
 trainTree :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
 trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
     | depth == 0 = Leaf (mostOccurrences classNames)
@@ -139,10 +140,12 @@ trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
                                             | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
           leftClassesTables = classesSplit (<)
           rightClassesTables = classesSplit (>=)
+          -- generating all possible solutions
           giniTable = [[(giniLR leftClasses rightClasses, leftClasses, rightClasses, threshold, featureIdx)
                         | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
                             | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
           flatGini = concat giniTable
+          -- finding the best solution
           (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
             foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) flatGini
 
