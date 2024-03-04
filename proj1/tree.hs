@@ -1,25 +1,31 @@
 {-# LANGUAGE RecordWildCards #-} -- to be able to use the created named data types conveniently
 
 module Tree (
-    BinaryTree(Node, Leaf), 
+    BinaryTree(Node, Leaf),
     traverseTree,
     traverseTreeMultiple,
     loadTrainCSV,
     trainTree,
-    trainTreeMaxDepth
+    trainTreeMaxDepth,
+    trainTreeMinSamplesSplit,
+    trainTreeMinSamplesLeaf,
+    trainTreeMaxDepthMinSamplesSplit,
+    trainTreeMaxDepthMinSamplesLeaf,
+    trainTreeMinSamplesSplitMinSamplesLeaf,
+    trainTreeBasic,
 ) where
 
 import qualified Data.List as L
 import Parsing (
-    takeRestOfText, 
-    skipWhiteSpaces, 
-    formattedError, 
-    takeErrorSample, 
-    trim, 
-    split, 
-    checkRemoveIndent, 
-    decimalOrLineError, 
-    doubleOrLineError, 
+    takeRestOfText,
+    skipWhiteSpaces,
+    formattedError,
+    takeErrorSample,
+    trim,
+    split,
+    checkRemoveIndent,
+    decimalOrLineError,
+    doubleOrLineError,
     )
 
 data BinaryTree = Node { index :: Int, threshold :: Double, leftTree :: BinaryTree, rightTree :: BinaryTree} | Leaf { className :: String }
@@ -47,11 +53,11 @@ readTree ('N':'o':'d':'e':':':values) line = (Node parsedIndex parsedThreshold l
           (x:restSpaces) = skipWhiteSpaces restIndex
           check = (x == ',') || formattedError line ("Comma expected at: '" ++ takeErrorSample (x:restSpaces) ++ "...'")
           (parsedThreshold, restThreshold)
-            | check = doubleOrLineError restSpaces line 
+            | check = doubleOrLineError restSpaces line
             | otherwise = (0, "") -- dummy
           (y:nextLineLeft) = skipWhiteSpaces restThreshold
           nextLineNum
-            | y == '\n' = line + 1 
+            | y == '\n' = line + 1
             | otherwise = formattedError line ("New line expected at: '" ++ takeErrorSample (y:nextLineLeft) ++ "...'")
           removedIndentLeft = checkRemoveIndent nextLineLeft nextLineNum
           (leftNode, restLeft) = readTree removedIndentLeft nextLineNum
@@ -116,27 +122,47 @@ mostOccurrences :: Ord a => [a] -> a
 mostOccurrences list = fst $ foldr1 (\x y -> if snd x >= snd y then x else y) pairs
     where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
 
-trainTreeMaxDepth :: ([[Double]], [(String, Int)]) -> Int -> BinaryTree
-trainTreeMaxDepth (features, classes) depth
+trainTree :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
     | depth == 0 = Leaf (mostOccurrences classNames)
+    | length classNames <= minSamplesSplit = Leaf (mostOccurrences classNames)
+    | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
     | length (L.nub classNames) == 1 = Leaf (head classNames)
-    | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMaxDepth (features, bestLeftClasses) nextDepth) (trainTreeMaxDepth (features, bestRightClasses) nextDepth)
+    | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMaxDepth nextDepth (features, bestLeftClasses)) (trainTreeMaxDepth nextDepth (features, bestRightClasses))
     where nextDepth = depth - 1
           (classNames, indices) = unzip classes
           selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
           thresholdTable = creteThresholds selectedFeatureTable
-          classesSplit = \op -> [[[classPair 
+          classesSplit = \op -> [[[classPair
                                     | (feature, classPair) <- zip selectedFeatures classes, op feature threshold]
-                                        | threshold <- thresholds] 
+                                        | threshold <- thresholds]
                                             | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
           leftClassesTables = classesSplit (<)
           rightClassesTables = classesSplit (>=)
-          giniTable = [[(giniLR leftClasses rightClasses, leftClasses, rightClasses, threshold, featureIdx) 
-                        | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds] 
+          giniTable = [[(giniLR leftClasses rightClasses, leftClasses, rightClasses, threshold, featureIdx)
+                        | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
                             | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
           flatGini = concat giniTable
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = 
+          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
             foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) flatGini
 
-trainTree :: ([[Double]], [(String, Int)]) -> BinaryTree
-trainTree trainingData = trainTreeMaxDepth trainingData (length $ snd trainingData)
+trainTreeMaxDepth :: Int -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMaxDepth depth = trainTree (depth, 2, 1)
+
+trainTreeMinSamplesSplit :: Int -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMinSamplesSplit minSamplesSplit = trainTree (maxBound, minSamplesSplit, 1)
+
+trainTreeMinSamplesLeaf :: Int -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMinSamplesLeaf minSamplesLeaf = trainTree (maxBound, 2, minSamplesLeaf)
+
+trainTreeMaxDepthMinSamplesSplit :: (Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMaxDepthMinSamplesSplit (depth, minSamplesSplit) = trainTree (depth, minSamplesSplit, 1)
+
+trainTreeMaxDepthMinSamplesLeaf :: (Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMaxDepthMinSamplesLeaf (depth, minSamplesLeaf) = trainTree (depth, 2, minSamplesLeaf)
+
+trainTreeMinSamplesSplitMinSamplesLeaf :: (Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMinSamplesSplitMinSamplesLeaf (minSamplesSplit, minSamplesLeaf) = trainTree (maxBound, minSamplesSplit, minSamplesLeaf)
+
+trainTreeBasic :: ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeBasic = trainTree (maxBound, 2, 1)

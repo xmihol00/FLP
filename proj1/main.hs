@@ -2,7 +2,7 @@ module Main (main) where
 
 import qualified System.Environment as E
 import Parsing (parseValues, utf8Print, decimalOrError)
-import Tree (BinaryTree, traverseTreeMultiple, loadTrainCSV, trainTree, trainTreeMaxDepth)
+import Tree (BinaryTree, traverseTreeMultiple, loadTrainCSV, trainTree, trainTreeBasic)
 
 mainInference :: [String] -> IO ()
 mainInference [treeFile, valuesFile] = do
@@ -17,23 +17,45 @@ mainTraining :: [String] -> IO ()
 mainTraining [trainingFile] = do
     trainingInput <- readFile trainingFile
     let trainingData = loadTrainCSV trainingInput ','
-    let tree = trainTree trainingData
+    let tree = trainTreeBasic trainingData
     utf8Print $ show tree
 mainTraining _ = error "Wrong number of parameters."
 
-mainTrainingWithDepth :: [String] -> IO ()
-mainTrainingWithDepth [trainingFile, depthStr] = do
+mainTrainingArgs :: [String] -> IO ()
+mainTrainingArgs [trainingFile, depthStr, minSamplesSplitStr, minSamplesLeafStr] = do
     let (depth, _) = decimalOrError depthStr (error $ "Integer expected after the '-d' parameter, got: " ++ depthStr)
+    let (minSamplesSplit, _) = decimalOrError minSamplesSplitStr (error $ "Integer expected after the '-mss' parameter, got: " ++ minSamplesSplitStr)
+    let (minSamplesLeaf, _) = decimalOrError minSamplesLeafStr (error $ "Integer expected after the '-msf' parameter, got: " ++ minSamplesLeafStr)
     trainingInput <- readFile trainingFile
     let trainingData = loadTrainCSV trainingInput ','
-    let tree = trainTreeMaxDepth trainingData depth
+    let tree = trainTree (depth, minSamplesSplit, minSamplesLeaf) trainingData
     utf8Print $ show tree
-mainTrainingWithDepth _ = error "Wrong number of parameters."
+mainTrainingArgs _ = error "Wrong parameters."
 
+-- somewhat cumbersome parsing of command line parameters, but it works for this purpose, normally some library would be used instead
+-- default values: depth=INT_MAX, minSamplesSplit=2, minSamplesLeaf=1
 parseArgs :: [String] -> ([String] -> IO (), [String])
 parseArgs [x] = (mainTraining, [x])
 parseArgs [x, y] = (mainInference, [x, y])
-parseArgs [x, "-d", depth] = (mainTrainingWithDepth, [x, depth])
+
+parseArgs [x, "-d", depth] = (mainTrainingArgs, [x, depth, "2", "1"])
+parseArgs [x, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, "1"])
+parseArgs [x, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), "2", minSamplesLeaf])
+
+parseArgs [x, "-d", depth, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, depth, minSamplesSplit, "1"])
+parseArgs [x, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit]
+parseArgs [x, "-d", depth, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, depth, "2", minSamplesLeaf])
+parseArgs [x, "-msf", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-msf", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, minSamplesLeaf])
+parseArgs [x, "-msf", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+
+parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, depth, minSamplesSplit, minSamplesLeaf])
+parseArgs [x, "-d", depth, "-msf", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-d", depth, "-msf", minSamplesLeaf] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-msf", minSamplesLeaf, "-d", depth, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-msf", minSamplesLeaf, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+
 parseArgs _ = error "Unexpected combination of command line arguments"
 
 main :: IO ()
