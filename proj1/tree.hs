@@ -112,13 +112,8 @@ creteThresholds selectedFeatures = ranges
     where sortedSelectedFeatures = map L.sort selectedFeatures
           ranges = [zipWith (\x y -> (x + y) / 2) feature (tail feature) | feature <- sortedSelectedFeatures]
 
-reduce :: (t -> t -> Bool) -> t -> [t] -> t
-reduce _ best [] = best
-reduce op best [x] = if op best x then best else x
-reduce op best (x:rest) = if op best x then reduce op best rest else reduce op x rest
-
 mostOccurrences :: Ord a => [a] -> a
-mostOccurrences list = fst $ reduce (\x y -> snd x >= snd y) (head pairs) (tail pairs)
+mostOccurrences list = fst $ foldr1 (\x y -> if snd x >= snd y then x else y) pairs
     where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
 
 trainTreeMaxDepth :: ([[Double]], [(String, Int)]) -> Int -> BinaryTree
@@ -140,7 +135,8 @@ trainTreeMaxDepth (features, classes) depth
                         | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds] 
                             | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
           flatGini = concat giniTable
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = reduce (\(x, _, _, _, _) (y, _, _, _, _) -> x <= y) (head flatGini) (tail flatGini)
+          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = 
+            foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) flatGini
 
 trainTree :: ([[Double]], [(String, Int)]) -> BinaryTree
 trainTree trainingData = trainTreeMaxDepth trainingData (length $ snd trainingData)
