@@ -5,7 +5,6 @@ module Tree (
     traverseTree,
     traverseTreeMultiple,
     loadTrainCSV,
-    trainTree,
     trainTreeMaxDepth,
     trainTreeMinSamplesSplit,
     trainTreeMinSamplesLeaf,
@@ -13,70 +12,107 @@ module Tree (
     trainTreeMaxDepthMinSamplesLeaf,
     trainTreeMinSamplesSplitMinSamplesLeaf,
     trainTreeBasic,
+    trainTreeMemoryInefficient,
+    trainTree
 ) where
 
+import qualified Data.Char as C
 import qualified Data.List as L
 import Parsing (
-    takeRestOfText,
+    takeRestOfLine,
     skipWhiteSpaces,
     formattedError,
     takeErrorSample,
     trim,
     split,
     checkRemoveIndent,
-    decimalOrLineError,
+    integerOrLineError,
     doubleOrLineError,
+    skipWhiteSpacesAndNewLines
     )
 
 data BinaryTree = Node { index :: Int, threshold :: Double, leftTree :: BinaryTree, rightTree :: BinaryTree} | Leaf { className :: String }
 
 instance Read BinaryTree where
-    readsPrec _ input = [readTree input 0]
+    readsPrec _ input = [readTree input]
 instance Show BinaryTree where
     show tree = treeString
         where treeString = init $ showBinaryTree tree 0
 
 showBinaryTree :: BinaryTree -> Int -> String
 showBinaryTree Node {..} depth = treeString
-    where indent = take (2 * depth) [' ', ' ' ..]
-          nextDepth = depth + 1
-          leftRest = showBinaryTree leftTree nextDepth
-          rightRest = showBinaryTree rightTree nextDepth
-          treeString = indent ++ "Node: " ++ show index ++ ", " ++ show threshold ++ "\n" ++ leftRest ++ rightRest
-showBinaryTree (Leaf className) depth = indent ++ "Leaf: " ++ className ++ "\n"
+    where
+        -- generate indent based on the depth of the tree 
+        indent = take (2 * depth) [' ', ' ' ..]
+        -- increase the depth
+        nextDepth = depth + 1
+        -- generate the left subtree
+        leftRest = showBinaryTree leftTree nextDepth
+        -- generate the right subtree
+        rightRest = showBinaryTree rightTree nextDepth
+        -- concatenate the values of the current node with the indent subtrees
+        treeString = indent ++ "Node: " ++ show index ++ ", " ++ show threshold ++ "\n" ++ leftRest ++ rightRest
+
+showBinaryTree (Leaf className) depth = indent ++ "Leaf: " ++ className ++ "\n" -- generate correctly indented leaf node
     where indent = take (2 * depth) [' ', ' ' ..]
 
-readTree :: String -> Int -> (BinaryTree, String)
-readTree ('N':'o':'d':'e':':':values) line = (Node parsedIndex parsedThreshold leftNode rightNode, restRight)
-    where trimmed = skipWhiteSpaces values
-          (parsedIndex, restIndex) = decimalOrLineError trimmed line
-          (x:restSpaces) = skipWhiteSpaces restIndex
-          check = (x == ',') || formattedError line ("Comma expected at: '" ++ takeErrorSample (x:restSpaces) ++ "...'")
-          (parsedThreshold, restThreshold)
-            | check = doubleOrLineError restSpaces line
-            | otherwise = (0, "") -- dummy
-          (y:nextLineLeft) = skipWhiteSpaces restThreshold
-          nextLineNum
-            | y == '\n' = line + 1
-            | otherwise = formattedError line ("New line expected at: '" ++ takeErrorSample (y:nextLineLeft) ++ "...'")
-          removedIndentLeft = checkRemoveIndent nextLineLeft nextLineNum
-          (leftNode, restLeft) = readTree removedIndentLeft nextLineNum
-          (z:nextLineRight) = skipWhiteSpaces restLeft
-          removedIndentRight
-            | z == '\n' = checkRemoveIndent nextLineRight nextLineNum
-            | otherwise = formattedError line ("New line expected at: '" ++ takeErrorSample (z:nextLineRight) ++ "...'")
-          (rightNode, restRight) = readTree removedIndentRight nextLineNum
+readTree :: String -> (BinaryTree, String)
+readTree fileString
+    | null nothingElse = (tree, nothingElse)
+    | otherwise = formattedError line "Unexpected characters occurred in the file after parsing of the tree."
+    where
+        -- parse tree
+        (tree, rest, line) = readTreeHelper fileString 0 0
+        -- check that the file contains only white spaces after the tree
+        nothingElse = skipWhiteSpacesAndNewLines rest
 
-readTree ('L':'e':'a':'f':':':values) _ = (Leaf className, rest)
-    where trimmed = skipWhiteSpaces values
-          (className, rest) = takeRestOfText trimmed
-readTree wrong line = formattedError line $ "Unexpected key word at: '" ++ takeErrorSample wrong ++ "...'"
+readTreeHelper :: [Char] -> Int -> Int -> (BinaryTree, String, Int)
+readTreeHelper ('N':'o':'d':'e':':':values) lineNum indent = (Node parsedIndex parsedThreshold leftNode rightNode, restRight, lastLineNum)
+    where 
+        nextIndent = indent + 1
+        -- skip leading white spaces apart from new lines and parse the expected integer after
+        (parsedIndex, restIndex) = integerOrLineError values lineNum
+        -- skip white spaces apart from new lines after the parsed integer
+        (x:restSpaces) = skipWhiteSpaces restIndex
+        -- check that the index and threshold are separated by a ',', skip leading white spaces apart from new lines and parse the expected double after 
+        (parsedThreshold, restThreshold)
+          | x == ',' = doubleOrLineError restSpaces lineNum
+          | otherwise = formattedError lineNum ("Comma expected at: '" ++ takeErrorSample (x:restSpaces) ++ "...'")
+        -- skip white spaces apart from new lines after the parsed double
+        (y:nextLineLeft) = skipWhiteSpaces restThreshold
+        -- check that the line ends without any non-white space characters, remove the indent at the next line and verify its correct length
+        removedIndentLeft
+          | y /= '\n' = formattedError lineNum ("New line expected at: '" ++ takeErrorSample (y:nextLineLeft) ++ "...'")
+          | otherwise = checkRemoveIndent nextLineLeft nextIndent (lineNum + 1)
+        -- parse the left subtree
+        (leftNode, restLeft, nextLineNum) = readTreeHelper removedIndentLeft (lineNum + 1) nextIndent
+        (z:nextLineRight) = skipWhiteSpaces restLeft
+        -- check that the line ends without any non-white space characters, remove the indent at the next line and verify its correct length
+        removedIndentRight
+          | z /= '\n' = formattedError nextLineNum ("New line expected at: '" ++ takeErrorSample (z:nextLineRight) ++ "...'")
+          | otherwise = checkRemoveIndent nextLineRight nextIndent nextLineNum
+        -- parse the right subtree
+        (rightNode, restRight, lastLineNum) = readTreeHelper removedIndentRight nextLineNum nextIndent
+
+readTreeHelper ('L':'e':'a':'f':':':values) lineNum _ = (Leaf className, rest, lineNum + 1)
+    where 
+        -- read until the '\n' character
+        (restOfLine, rest) = takeRestOfLine values
+        -- trim the string, but allow spaces in the class name
+        className = trim restOfLine
+
+-- deal with some other possible errors
+readTreeHelper wrong@(x:_) lineNum _
+    | C.isSpace x = formattedError lineNum $ "Unexpected indent."
+    | otherwise = formattedError lineNum $ "Unexpected key word at: '" ++ takeErrorSample wrong ++ "...'"
+readTreeHelper [] 0 _ = formattedError 0 $ "Nothing to be parsed in the tree file, check the content of the file input."
+readTreeHelper [] _ _ = formattedError (-1) $ "An unexpected error occurred while parsing the tree file, verify correct formatting of the file, please."
 
 traverseTree :: BinaryTree -> [Double] -> String
 traverseTree Node {..} values
-    | length values <= index = error "Not enough values entered to perform classification."
-    | values !! index <= threshold = traverseTree leftTree values
-    | otherwise = traverseTree rightTree values
+    | length values <= index = error "Not enough values entered to perform classification." -- TODO take the most likely
+    | values !! index <= threshold = traverseTree leftTree values -- look for the class in the left subtree
+    | otherwise = traverseTree rightTree values -- otherwise look for the class in the right subtree
 traverseTree Leaf {..} _ = className
 
 traverseTreeMultiple :: BinaryTree -> [[Double]] -> String
@@ -86,32 +122,52 @@ traverseTreeMultiple tree (row:rows)
 traverseTreeMultiple _ [] = ""
 
 gini :: [String] -> Double
-gini samples = 1 - sumOccurences
-    where classes = L.nub samples
-          samplesLen = length samples
-          occurences = [length $ filter (== x) samples | x <- classes]
-          normPow2Occurences = map (\x -> (fromIntegral x / fromIntegral samplesLen)**2.0) occurences
-          sumOccurences = sum normPow2Occurences
+gini samples = giniValue
+    where 
+        -- get unique classes
+        classes = L.nub samples
+        -- get the normalization factor
+        samplesLen = length samples
+        -- compute number of occurences of each unique class
+        occurences = [length $ filter (== x) samples | x <- classes]
+        -- compute (<class occurrence>/<number of samples>)^2
+        normPow2Occurences = map (\x -> (fromIntegral x / fromIntegral samplesLen)**2.0) occurences
+        -- sum the total
+        sumOccurences = sum normPow2Occurences
+        -- use the inverse as the gini value, i.e. giniValue = 1 - sum_{over all classes}((<class occurrence in samples>/<number of samples>)^2)
+        giniValue = 1 - sumOccurences
 
-giniLR :: [(String, Int)] -> [(String, Int)] -> Double
-giniLR leftSamples rightSamples = totalGini
-    where leftLen = fromIntegral $ length leftSamples
-          rightLen = fromIntegral $ length rightSamples
-          totalLen = leftLen + rightLen
-          giniLeft = gini $ map fst leftSamples
-          giniRight = gini $ map fst rightSamples
-          totalGini = leftLen * giniLeft / totalLen + rightLen * giniRight / totalLen
+giniLR :: ([(String, Int)], [(String, Int)]) -> Double
+giniLR (leftSamples, rightSamples) = totalGini
+    where
+        -- normalization factor of left list as double
+        leftLen = fromIntegral $ length leftSamples
+        -- normalization factor of right list as double
+        rightLen = fromIntegral $ length rightSamples
+        -- compute the overall normalization factor
+        totalLen = leftLen + rightLen
+        -- compute gini values for each list
+        giniLeft = gini $ map fst leftSamples
+        giniRight = gini $ map fst rightSamples
+        -- compute the total gini value as a weighted sum of the gini value of the separate lists
+        totalGini = leftLen * giniLeft / totalLen + rightLen * giniRight / totalLen
 
 loadTrainCSV :: String -> Char -> ([[Double]], [(String, Int)])
 loadTrainCSV strData separator = (featuresDouble, trimmedClasses)
-    where colCount = length $ filter (== separator) $ takeWhile (/= '\n') strData
-          rows = split '\n' strData
-          allSameCols = all (== colCount) [length $ filter (== separator) row | row <- rows]
-          (features, classes)
-            | allSameCols = unzip [splitAt colCount $ split separator row | row <- rows]
-            | otherwise = error "Entered CSV file does not have a valid structure, some rows have more columns than other."
-          featuresDouble = L.transpose [map (\x -> fst $ doubleOrLineError x line) featureRow | (featureRow, line) <- zip features [0, 1 ..]]
-          trimmedClasses = [(trim $ head classRow, idx) | (classRow, idx) <- zip classes [0, 1 ..]]
+    where 
+        -- expect the first row to have the same schema as all other rows, i.e. number of columns
+        colCount = length $ filter (== separator) $ takeWhile (/= '\n') strData
+        -- split the file into lines
+        rows = split '\n' strData
+        -- ensure the same row schema (same number of columns) over the whole file
+        allSameCols = all (== colCount) [length $ filter (== separator) row | row <- rows]
+        (features, classes)
+          | not allSameCols = error "Entered CSV file does not have a valid structure, some rows have more columns than other."
+          -- split each row to X (training data) and y (expected class)
+          | otherwise = unzip [splitAt colCount $ split separator row | row <- rows] -- first split on the separator, second split X and y
+        -- TODO
+        featuresDouble = L.transpose [map (\x -> fst $ doubleOrLineError x line) featureRow | (featureRow, line) <- zip features [0, 1 ..]]
+        trimmedClasses = [(trim $ head classRow, idx) | (classRow, idx) <- zip classes [0, 1 ..]]
 
 creteThresholds :: [[Double]] -> [[Double]]
 creteThresholds selectedFeatures = ranges
@@ -123,31 +179,65 @@ mostOccurrences list = fst $ foldr1 (\x y -> if snd x >= snd y then x else y) pa
     where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
 
 -- inefficient training, generates all possible solutions for each node and then reduces them to the best one
+trainTreeMemoryInefficient :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
+trainTreeMemoryInefficient (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
+    | depth == 0 = Leaf (mostOccurrences classNames)
+    | length classNames <= minSamplesSplit = Leaf (mostOccurrences classNames)
+    | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
+    | length (L.nub classNames) == 1 = Leaf (head classNames)
+    | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMemoryInefficient nextParams (features, bestLeftClasses)) (trainTreeMemoryInefficient nextParams (features, bestRightClasses))
+    where nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
+          (classNames, indices) = unzip classes
+          -- filter still relevant features
+          selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
+          -- compute thresholds from relevant features
+          thresholdTable = creteThresholds selectedFeatureTable
+          -- partitioning function
+          classesSplit = \op -> [[[classPair
+                                    | (feature, classPair) <- zip selectedFeatures classes, op feature threshold]
+                                        | threshold <- thresholds]
+                                            | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
+          -- perform partitioning based on the relation to threshold
+          leftClassesTables = classesSplit (<)
+          rightClassesTables = classesSplit (>=)
+          -- generating all possible solutions
+          giniTable = [[(giniLR (leftClasses, rightClasses), leftClasses, rightClasses, threshold, featureIdx)
+                        | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
+                            | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
+          giniFlat = concat giniTable
+          -- finding the best solution
+          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
+            foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) giniFlat
+
+giniZip :: ([(String, Int)], [(String, Int)]) -> Double -> Int -> (Double, [(String, Int)], [(String, Int)], Double, Int)
+giniZip list@(leftList, rightList) threshold index = (giniLR list, leftList, rightList, threshold, index)
+ 
+giniReduce :: [(Double, [(String, Int)], [(String, Int)], Double, Int)] -> (Double, [(String, Int)], [(String, Int)], Double, Int)
+giniReduce = foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left)
+
+thresholdPartition :: Double -> [(Double, (String, Int))] -> ([(String, Int)], [(String, Int)])
+thresholdPartition threshold = foldr (\(feature, classPair) (leftList, rightList) -> if feature < threshold then (classPair:leftList, rightList) else (leftList, classPair:rightList)) ([], [])
+
 trainTree :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
 trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
     | depth == 0 = Leaf (mostOccurrences classNames)
     | length classNames <= minSamplesSplit = Leaf (mostOccurrences classNames)
     | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
     | length (L.nub classNames) == 1 = Leaf (head classNames)
-    | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMaxDepth nextDepth (features, bestLeftClasses)) (trainTreeMaxDepth nextDepth (features, bestRightClasses))
-    where nextDepth = depth - 1
+    | otherwise = Node bestFeatureIdx bestThreshold (trainTree nextParams (features, bestLeftClasses)) (trainTree nextParams (features, bestRightClasses))
+    where nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
           (classNames, indices) = unzip classes
+          -- filter still relevant features 
           selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
+          -- compute thresholds from relevant features
           thresholdTable = creteThresholds selectedFeatureTable
-          classesSplit = \op -> [[[classPair
-                                    | (feature, classPair) <- zip selectedFeatures classes, op feature threshold]
-                                        | threshold <- thresholds]
-                                            | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
-          leftClassesTables = classesSplit (<)
-          rightClassesTables = classesSplit (>=)
-          -- generating all possible solutions
-          giniTable = [[(giniLR leftClasses rightClasses, leftClasses, rightClasses, threshold, featureIdx)
-                        | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
-                            | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
-          flatGini = concat giniTable
-          -- finding the best solution
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
-            foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) flatGini
+          -- reduce generated solutions in batches
+          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = 
+            giniReduce [ -- reduce to the best overall
+                giniReduce [ -- reduce to the best for each feature index
+                    giniZip (thresholdPartition threshold (zip selectedFeatures classes)) threshold featureIdx | threshold <- thresholds
+                ] | (thresholds, selectedFeatures, featureIdx) <- L.zip3 thresholdTable selectedFeatureTable [0, 1 ..]
+            ]
 
 trainTreeMaxDepth :: Int -> ([[Double]], [(String, Int)]) -> BinaryTree
 trainTreeMaxDepth depth = trainTree (depth, 2, 1)

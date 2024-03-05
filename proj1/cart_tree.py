@@ -1705,7 +1705,7 @@ if __name__ == "__main__":
     clf.fit(X, y)
 
     class_names = list(label_map.keys())
-    visualize_tree(clf, [f"Feature {i}" for i in range(features_count)], class_names, tree_name)
+    #visualize_tree(clf, [f"Feature {i}" for i in range(features_count)], class_names, tree_name)
 
     training_data = data[:, :features_count].T.astype(float)
     features = data[:, -1].flatten()

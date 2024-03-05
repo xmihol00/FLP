@@ -1,6 +1,6 @@
 module Parsing (
     isRight,
-    takeRestOfText,
+    takeRestOfLine,
     skipWhiteSpaces,
     skipWhiteSpacesAndNewLines,
     formattedError,
@@ -9,8 +9,8 @@ module Parsing (
     trim,
     split,
     checkRemoveIndent,
-    decimalOrError,
-    decimalOrLineError,
+    integerOrError,
+    integerOrLineError,
     doubleOrError,
     doubleOrLineError,
     parseValues
@@ -25,11 +25,11 @@ isRight :: Either a b -> Bool
 isRight (Right _) = True
 isRight (Left _)  = False
 
-takeRestOfText :: String -> (String, String)
-takeRestOfText = span (\x -> x /= '\n' && x /= ' ' && x /= '\t')
+takeRestOfLine :: String -> (String, String)
+takeRestOfLine = span (\x -> x /= '\n')
 
 skipWhiteSpaces :: String -> String
-skipWhiteSpaces = dropWhile (\x -> x == ' ' || x == '\t')
+skipWhiteSpaces = dropWhile (\x -> C.isSpace x && x /= '\n')
 
 skipWhiteSpacesAndNewLines :: String -> String
 skipWhiteSpacesAndNewLines = dropWhile C.isSpace
@@ -37,7 +37,7 @@ skipWhiteSpacesAndNewLines = dropWhile C.isSpace
 takeErrorSample :: String -> String
 takeErrorSample = takeWhile (/= '\n') . take 16
 
-formattedError :: (Show a1, Num a1) => a1 -> String -> a2
+formattedError :: (Show a) => Int -> String -> a
 formattedError line text = error ("\nLine " ++ show (line + 1) ++ ": " ++ text ++ "\n")
 
 utf8Print :: String -> IO ()
@@ -57,11 +57,12 @@ trim str = trimEnd
     where trimmedStart = dropWhile C.isSpace str
           trimEnd = reverse $ dropWhile C.isSpace $ reverse trimmedStart
 
-checkRemoveIndent :: String -> Int -> String
-checkRemoveIndent input line = trimmed
-    where (spaces, trimmedUnchecked) = splitAt (2 * line) input
-          check = all (==' ') spaces || formattedError line ("Wrong indent at line " ++ show line ++ ", unexpected indent.")
-          trimmed = if check then trimmedUnchecked else ""
+checkRemoveIndent :: String -> Int -> Int -> String
+checkRemoveIndent input indent line = trimmed
+    where (spaces, trimmedUnchecked) = splitAt (2 * indent) input
+          trimmed
+            | not $ all (==' ') spaces = formattedError line ("Unexpected indent.")
+            | otherwise = trimmedUnchecked
 
 numberOrError :: String -> (TL.Text -> Either a1 (a2, TL.Text)) -> Either a1 (a2, TL.Text) -> (a2, String)
 numberOrError input parser maybeError = (num, rest)
@@ -71,11 +72,11 @@ numberOrError input parser maybeError = (num, rest)
             | otherwise = maybeError
           rest = TL.unpack restPacked
 
-decimalOrError :: Integral a => String -> Either String (a, TL.Text) -> (a, String)
-decimalOrError input = numberOrError input TL.decimal
+integerOrError :: Integral a => String -> Either String (a, TL.Text) -> (a, String)
+integerOrError input = numberOrError input TL.decimal
 
-decimalOrLineError :: String -> Int -> (Int, String)
-decimalOrLineError input line = decimalOrError input (formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number.")
+integerOrLineError :: String -> Int -> (Int, String)
+integerOrLineError input line = integerOrError input (formattedError line $ "Unable to parse '" ++ takeErrorSample input ++ "...' as a natural number.")
 
 doubleOrError :: String -> Either String (Double, TL.Text) -> (Double, String)
 doubleOrError input = numberOrError input TL.double

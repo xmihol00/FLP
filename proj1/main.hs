@@ -1,7 +1,7 @@
 module Main (main) where
 
 import qualified System.Environment as E
-import Parsing (parseValues, utf8Print, decimalOrError)
+import Parsing (parseValues, utf8Print, integerOrError)
 import Tree (BinaryTree, traverseTreeMultiple, loadTrainCSV, trainTree, trainTreeBasic)
 
 mainInference :: [String] -> IO ()
@@ -23,9 +23,9 @@ mainTraining _ = error "Wrong number of parameters."
 
 mainTrainingArgs :: [String] -> IO ()
 mainTrainingArgs [trainingFile, depthStr, minSamplesSplitStr, minSamplesLeafStr] = do
-    let (depth, _) = decimalOrError depthStr (error $ "Integer expected after the '-d' parameter, got: " ++ depthStr)
-    let (minSamplesSplit, _) = decimalOrError minSamplesSplitStr (error $ "Integer expected after the '-mss' parameter, got: " ++ minSamplesSplitStr)
-    let (minSamplesLeaf, _) = decimalOrError minSamplesLeafStr (error $ "Integer expected after the '-msf' parameter, got: " ++ minSamplesLeafStr)
+    let (depth, _) = integerOrError depthStr (error $ "Integer expected after the '-d' parameter, got: " ++ depthStr)
+    let (minSamplesSplit, _) = integerOrError minSamplesSplitStr (error $ "Integer expected after the '-mss' parameter, got: " ++ minSamplesSplitStr)
+    let (minSamplesLeaf, _) = integerOrError minSamplesLeafStr (error $ "Integer expected after the '-msf' parameter, got: " ++ minSamplesLeafStr)
     trainingInput <- readFile trainingFile
     let trainingData = loadTrainCSV trainingInput ','
     let tree = trainTree (depth, minSamplesSplit, minSamplesLeaf) trainingData
