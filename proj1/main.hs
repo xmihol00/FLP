@@ -32,9 +32,18 @@ mainTrainingArgs [trainingFile, depthStr, minSamplesSplitStr, minSamplesLeafStr]
     utf8Print $ show tree
 mainTrainingArgs _ = error "Wrong parameters."
 
+mainEchoTree :: [String] -> IO ()
+mainEchoTree [treeFile] = do
+    treeInput <- readFile treeFile
+    let [(tree, _)] = reads treeInput :: [(BinaryTree, String)]
+    utf8Print $ show tree
+mainEchoTree _ = error "Wrong parameters."
+
 -- somewhat cumbersome parsing of command line parameters, but it works for this purpose, normally some library would be used instead
 -- default values: depth=INT_MAX, minSamplesSplit=2, minSamplesLeaf=1
 parseArgs :: [String] -> ([String] -> IO (), [String])
+parseArgs [x, "--echo_tree"] = (mainEchoTree, [x])
+
 parseArgs [x] = (mainTraining, [x])
 parseArgs [x, y] = (mainInference, [x, y])
 
