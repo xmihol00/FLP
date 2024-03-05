@@ -1,4 +1,4 @@
-All tests passed.
+All tests PASSED.
 Passed:       10/10
 Failed:       0/10
 Success rate: 100.00%

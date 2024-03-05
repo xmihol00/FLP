@@ -9,7 +9,7 @@ import datetime
 from glob import glob
 from termcolor import colored
 
-# usage e.g.: python test_flp-fun.py -ds p i h -md 5 10 -msl 5 5 -fa "-d 5" "-d 10"
+# usage e.g.: python test_flp-fun.py -ds p i h -md 5 10 -fa "-d 5" "-d 10"
 # or just   : python test_flp-fun.py
 
 DATASETS_MAP = {
@@ -25,7 +25,7 @@ SPLITS = [0.0000001, 0.1, 0.2, 0.3, 0.4, 0.5] # test/train splits of the dataset
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run tests on flp-fun")
     parser.add_argument("--test_type", "-tt", type=str, default="both", choices=["both", "training", "inference", "b", "t", "i"], help="Type of tests to run. Default is both. b for both, t for training, i for inference.")
-    parser.add_argument("--datasets", "-ds", type=str, nargs='+', default=['p', 'i', 'h', 'w'], choices=['p', 'i', 'h', 'w'], help="Data sets to use for testing. p for penguins, i for iris, b for boston housing, w for wines. Default is all.")
+    parser.add_argument("--datasets", "-ds", type=str, nargs='+', default=['p', 'i', 'h', 'w'], choices=['p', 'i', 'h', 'w'], help="Data sets to use for testing. p for penguins, i for iris, h for housing, w for wines. Default is all.")
     parser.add_argument("--epsilon", "-e", type=float, default=0.1, help="Allowed difference to reference implementation. Default is 0.1.")
     parser.add_argument("--max_depth", "-md", type=int, nargs='+', default=[], help="Maximum depth of the reference decision tree. Default is 2^31.")
     # This parameter specifies the minimum number of samples required to split an internal node. If an internal node has fewer samples than min_samples_split, 
@@ -54,23 +54,29 @@ if __name__ == "__main__":
     # get max argument len for output formatting
     arg_max_len = max(map(len, args.flp_args))
 
+    # ensure reproducibility or randomness
     if args.random:
         args.seed = int(datetime.datetime.now().timestamp())
     np.random.seed(args.seed)
 
+    all_training_passed = None
     if args.test_type in ["both", "b", "training", "t"]:
         print("Running training tests...")
-        os.remove("flp-fun_training_stdout.tmp") if os.path.exists("flp-fun_training_stdout.tmp") else None
-        os.remove("flp-fun_training_stderr.tmp") if os.path.exists("flp-fun_training_stderr.tmp") else None
-        os.remove("flp-fun_parsing_stderr.tmp") if os.path.exists("flp-fun_parsing_stderr.tmp") else None
+
+        # remove old output files if they exist
+        os.remove("flp-fun_training_stdout.out") if os.path.exists("flp-fun_training_stdout.out") else None
+        os.remove("flp-fun_training_stderr.out") if os.path.exists("flp-fun_training_stderr.out") else None
+        os.remove("flp-fun_parsing_stderr.out") if os.path.exists("flp-fun_parsing_stderr.out") else None
         
-        all_pased = True
+        # initialize the control variables
+        all_training_passed = True
         passed_count = 0
         failed_count = 0
         total_count = 0
         parsing_failed_count = 0
         parsing_passed_count = 0
         results_df = pd.DataFrame(columns=["dataset", "arguments", "split", "train_success_rate", "test_success_rate", "reference_test_success", "test_difference", "train_time", "result"])
+
         for dataset in [DATASETS_MAP[ds] for ds in args.datasets]:
             df = pd.read_csv(dataset.strip(), header=None)
             for split in SPLITS:
@@ -93,32 +99,37 @@ if __name__ == "__main__":
                 for arguments, max_depth, min_samples_split, min_samples_leaf in zip(args.flp_args, args.max_depth, args.min_samples_split, args.min_samples_leaf):
                     # train the tree and save it
                     train_start = time.time() 
-                    os.system(f"./flp-fun training_data.tmp {arguments} | tee -a flp-fun_training_stdout.tmp >trained_tree.tmp 2>flp-fun_training_stderr.tmp")
+                    os.system(f"./flp-fun training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
                     train_time = time.time() - train_start
 
-                    if os.system(f"./flp-ref trained_tree.tmp --echo_tree >/dev/null 2>flp-fun_parsing_stderr.tmp"):
+                    # try to parse the trained tree with my implementation, which is somewhat forgiving
+                    if os.system(f"./flp-ref trained_tree.tmp --echo_tree >/dev/null 2>flp-fun_parsing_stderr.out"):
                         print("Trained tree could not be parsed by the reference implementation.")
                         parsing_failed_count += 1
                     else:
                         parsing_passed_count += 1
 
-                    os.system(f"./flp-fun trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.tmp >predictions.tmp 2>flp-fun_training_stderr.tmp") # TODO possibly add arguments for flp-fun inference
+                    os.system(f"./flp-fun trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     train_success_rate = (predictions == train_y).sum() / train_y.shape[0] # this should be 1.0 for completely overfitted trees on the training set
 
-                    os.system(f"./flp-fun trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.tmp >predictions.tmp 2>flp-fun_training_stderr.tmp") # TODO possibly add arguments for flp-fun inference
+                    os.system(f"./flp-fun trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     test_success_rate = (predictions == test_y).sum() / test_y.shape[0] # this will differ based on implementation
 
+                    # reference implementation
                     clf = DecisionTreeClassifier(max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_split, random_state=args.seed)
                     clf.fit(train_X, train_y)
                     clf_predictions = clf.predict(test_X)
                     reference_test_success = (clf_predictions == test_y).sum() / test_y.shape[0]
 
-                    test_difference = reference_test_success - test_success_rate # this can even be negative if the reference implementation is worse.
+                    # this can even be negative if the reference implementation is worse.
+                    test_difference = reference_test_success - test_success_rate
+
+                    # evaluate the results
                     message = "PASSED"
                     if test_difference > args.epsilon:
-                        all_pased = False
+                        all_training_passed = False
                         print(f"Test failed for dataset {dataset}, split {split}, arguments {arguments}. Difference is {test_difference}.")
                         message = "FAILED"
                         failed_count += 1
@@ -126,24 +137,25 @@ if __name__ == "__main__":
                         passed_count += 1
                     total_count += 1
 
+                    # write the results to a dataframe
                     arguments = arguments.rjust(arg_max_len, " ")
                     results_df.loc[len(results_df.index)] = [
                         dataset, arguments, round(split, 2), train_success_rate, test_success_rate, reference_test_success, test_difference, train_time, message
                     ]
 
 
-        if all_pased:
-            print(colored("All training tests passed.", "green"))
+        if all_training_passed:
+            print(colored("All training tests PASSED.", "green"))
         else:
-            print(colored("Some training tests failed.", "red"))
+            print(colored("Some training tests FAILED.", "red"))
 
         if not args.no_files:
             results_df.to_csv("training_tests_result.csv", index=False, float_format='% .3f')
             with open("training_tests_summary.txt", "w") as f:
-                if all_pased:
-                    f.write("All tests passed.\n")
+                if all_training_passed:
+                    f.write("All tests PASSED.\n")
                 else:
-                    f.write("Some tests failed.\n")
+                    f.write("Some tests FAILED.\n")
                 f.write(f"Passed:         {passed_count}/{total_count}\n")
                 f.write(f"Failed:         {failed_count}/{total_count}\n")
                 f.write(f"Success rate:   {passed_count/total_count*100:.2f} %\n")
@@ -153,33 +165,41 @@ if __name__ == "__main__":
                 f.write(f"Results saved to training_tests_result.csv")
 
         try:
-            os.remove("training_data.tmp")
-            os.remove("train_X.tmp")
-            os.remove("test_X.tmp")
-            os.remove("trained_tree.tmp")
-            os.remove("predictions.tmp")
+            os.remove("training_data.tmp") if os.path.exists("training_data.tmp") else None
+            os.remove("train_X.tmp") if os.path.exists("train_X.tmp") else None
+            os.remove("test_X.tmp") if os.path.exists("test_X.tmp") else None
+            os.remove("trained_tree.tmp") if os.path.exists("trained_tree.tmp") else None
+            os.remove("predictions.tmp") if os.path.exists("predictions.tmp") else None
         except:
             pass
     
+    all_inference_passed = None
     if args.test_type in ["both", "b", "inference", "i"]:
         print("Running inference tests...")
-        os.remove("flp-fun_inference_stdout.tmp") if os.path.exists("flp-fun_inference_stdout.tmp") else None
-        os.remove("flp-fun_inference_stderr.tmp") if os.path.exists("flp-fun_inference_stderr.tmp") else None
+        os.remove("flp-fun_inference_stdout.out") if os.path.exists("flp-fun_inference_stdout.out") else None
+        os.remove("flp-fun_inference_stderr.out") if os.path.exists("flp-fun_inference_stderr.out") else None
         
-        all_pased = True
+        all_inference_passed = True
         passed_count = 0
         failed_count = 0
         total_count = 0
-
-        for file in glob('trained/*.txt'):
+        
+        # run inference tests from directories 'trained', 'values' and 'ground_truth', more tests can be added, the file names just need to match
+        for file in glob('trained/*.txt'): 
             base_name = os.path.basename(file)
-            os.system(f"./flp-fun trained/{base_name} values/{base_name} | tee -a flp-fun_inference_stdout.tmp >predictions.tmp 2>flp-fun_inference_stderr.tmp")
+            
+            # run the inference
+            os.system(f"./flp-fun trained/{base_name} values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
+
+            # load the predictions and ground truth
             predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
             ground_truth = pd.read_csv(f"ground_truth/{base_name}", header=None).to_numpy().flatten()
+
+            # compare the predictions to the ground truth, here any difference is a failure since the inference should be deterministic
             same = np.array_equal(predictions, ground_truth)
             message = "PASSED"
             if not same:
-                all_pased = False
+                all_inference_passed = False
                 print(f"Test failed for file {file}.")
                 message = "FAILED"
                 failed_count += 1
@@ -187,19 +207,44 @@ if __name__ == "__main__":
                 passed_count += 1
             total_count += 1
 
-        if all_pased:
-            print(colored("All inference tests passed.", "green"))
+        if all_inference_passed:
+            print(colored("All inference tests PASSED.", "green"))
         else:
-            print(colored("Some inference tests failed.", "red"))
+            print(colored("Some inference tests FAILED.", "red"))
         
         if not args.no_files:
             with open("inference_tests_summary.txt", "w") as f:
-                if all_pased:
-                    f.write("All tests passed.\n")
+                if all_inference_passed:
+                    f.write("All tests PASSED.\n")
                 else:
-                    f.write("Some tests failed.\n")
+                    f.write("Some tests FAILED.\n")
 
                 f.write(f"Passed:       {passed_count}/{total_count}\n")
                 f.write(f"Failed:       {failed_count}/{total_count}\n")
                 f.write(f"Success rate: {passed_count/total_count*100:.2f}%\n")
                 f.write(f"Failed rate:  {failed_count/total_count*100:.2f}%\n")
+        
+        try:
+            os.remove("predictions.tmp") if os.path.exists("predictions.tmp") else None
+        except:
+            pass
+
+# return codes to evaluate the tests automatically
+if all_training_passed is None and all_inference_passed is None:  # no tests were run
+    exit(-1)
+if all_training_passed is None:                                   # only inference tests were run
+    if all_inference_passed:                                      # only inference tests were run and passed
+        exit(0)
+    else:                                                         # only inference tests were run and failed                   
+        exit(2)
+if all_inference_passed is None:                                  # only training tests were run
+    if all_training_passed:                                       # only training tests were run and passed
+        exit(0)
+    else:                                                         # only training tests were run and failed
+        exit(1)
+if all_training_passed and all_inference_passed:                  # both tests were run and passed
+    exit(0)
+if not all_training_passed and not all_inference_passed:          # both tests were run and failed
+    exit(3)
+
+# cleanup leftover file if you dare: 'rm *.out *.tmp'

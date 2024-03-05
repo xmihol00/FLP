@@ -7,3 +7,5 @@ penguins.csv
 wines.csv
 boston_housing.csv
 *.tmp
+*.log
+*.out
