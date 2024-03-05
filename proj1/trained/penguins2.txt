@@ -1,0 +1,9 @@
+Node: 0, 43.5
+  Node: 0, 41.8
+    Leaf: Adelie
+    Leaf: Adelie
+  Node: 3, 4462.5
+    Node: 1, 20.7
+      Leaf: Chinstrap
+      Leaf: Adelie
+    Leaf: Gentoo

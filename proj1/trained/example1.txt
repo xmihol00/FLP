@@ -1,0 +1,5 @@
+Node: 0, 3.0
+  Leaf: TřídaA
+  Node: 0, 6.199999999999999
+    Leaf: TřídaB
+    Leaf: TřídaC

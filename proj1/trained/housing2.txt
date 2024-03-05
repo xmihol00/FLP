@@ -1,0 +1,25 @@
+Node: 12, 24.185000000000002
+  Node: 0, 14.23575
+    Node: 7, 2.7904
+      Node: 5, 6.133
+        Node: 5, 6.0285
+          Node: 6, 97.75
+            Node: 12, 14.899999999999999
+              Leaf: 20
+              Leaf: 10
+            Leaf: 0
+          Leaf: 20
+        Node: 5, 6.776
+          Leaf: 10
+          Leaf: 0
+      Leaf: 20
+    Node: 4, 0.638
+      Leaf: 10
+      Leaf: 0
+  Node: 4, 0.638
+    Leaf: 10
+    Node: 5, 5.378500000000001
+      Node: 4, 0.6859999999999999
+        Leaf: 10
+        Leaf: 0
+      Leaf: 0

@@ -1,0 +1,9 @@
+Node: 2, 1.1
+  Leaf: D
+  Node: 2, 2.5999999999999996
+    Node: 1, 4.25
+      Leaf: B
+      Leaf: C
+    Node: 0, 0.8
+      Leaf: B
+      Leaf: A

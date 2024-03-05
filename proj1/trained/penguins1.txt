@@ -1,5 +1,5 @@
 Node: 0, 38.95
-  Node: 0, 37.650000000000006
+  Node: 0, 37.6500
     Node: 0, 35.95
       Leaf: Biscoe
       Leaf: Dream

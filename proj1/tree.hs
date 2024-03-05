@@ -165,8 +165,9 @@ loadTrainCSV strData separator = (featuresDouble, trimmedClasses)
           | not allSameCols = error "Entered CSV file does not have a valid structure, some rows have more columns than other."
           -- split each row to X (training data) and y (expected class)
           | otherwise = unzip [splitAt colCount $ split separator row | row <- rows] -- first split on the separator, second split X and y
-        -- TODO
+        -- convert features to doubles while ignoring all leading white spaces and transpose then in order to have the data better prepared for training
         featuresDouble = L.transpose [map (\x -> fst $ doubleOrLineError x line) featureRow | (featureRow, line) <- zip features [0, 1 ..]]
+        -- trim leading and trailing white spaces form the class names and add pair them with their row indices
         trimmedClasses = [(trim $ head classRow, idx) | (classRow, idx) <- zip classes [0, 1 ..]]
 
 creteThresholds :: [[Double]] -> [[Double]]
