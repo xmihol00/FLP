@@ -1,7 +1,0 @@
-dataset,arguments,split,train_success_rate,test_success_rate,reference_test_success,test_difference,train_time,result
-penguins_cleaned.csv,, 0.000, 0.997, 1.000, 1.000, 0.000, 0.379,PASSED
-penguins_cleaned.csv,, 0.100, 0.997, 0.971, 1.000, 0.029, 0.296,PASSED
-penguins_cleaned.csv,, 0.200, 0.996, 0.985, 1.000, 0.015, 0.238,PASSED
-penguins_cleaned.csv,, 0.300, 0.996, 0.980, 0.980, 0.000, 0.175,PASSED
-penguins_cleaned.csv,, 0.400, 1.000, 0.955, 0.970, 0.015, 0.129,PASSED
-penguins_cleaned.csv,, 0.500, 1.000, 0.910, 0.910, 0.000, 0.082,PASSED
