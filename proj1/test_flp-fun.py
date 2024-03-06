@@ -9,6 +9,12 @@ import datetime
 from glob import glob
 from termcolor import colored
 
+###################################################
+# Test script for FLP project 1 2024 - flp-fun
+# Author: David Mihola
+# e-mail: xmihol00@stud.fit.vutbr.cz
+###################################################
+
 # usage e.g.: python test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
 #           : python test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
 #           : python test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
