@@ -9,14 +9,18 @@ import datetime
 from glob import glob
 from termcolor import colored
 
-# usage e.g.: python test_flp-fun.py -ds p i h -md 5 10 -fa "-d 5" "-d 10"
+# usage e.g.: python test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
+#           : python test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
+#           : python test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
+#           : python test_flp-fun.py -ds p h w -md 4 8 -mss 3 8 -msl 4 7 -fa "-d 4 -mss 3 -msl 4" "-d 8 -mss 7 -msl 6" -tt t
+#           : mkdir -p test_results && cd test_results && python ../test_flp-fun.py
 # or just   : python test_flp-fun.py
 
 DATASETS_MAP = {
-    'p': "penguins_cleaned.csv",
-    'i': "    iris_cleaned.csv",
-    'h': " housing_cleaned.csv",
-    'w': "   wines_cleaned.csv",
+    'p': "penguins_all.csv",
+    'i': "    iris_all.csv",
+    'h': " housing_all.csv",
+    'w': "   wines_all.csv",
     # TODO add some more maybe synthetic datasets to test something specific
 }
 
@@ -36,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--min_samples_leaf", "-msl", type=int, nargs='+', default=[], help="The minimum number of samples required to be at a leaf node. Default is 1.")
     # Each of the flp arguments, passed as "quite a lot of arguments" will be coupled with the corresponding max_depth, min_samples_split, min_samples_leaf
     # at the same index in the lists. You can test your improved implementations this way. E.g. my implementation accepts additional parameters after the
-    # file names.
+    # file names. You can adapt this approach.
     parser.add_argument("--flp_args", "-fa", type=str, nargs='+', default=[], help="Arguments to pass to flp-fun,. Default is none.")
     parser.add_argument("--no_files", "-nf", action="store_true", help="Do not save test output to files.")
     # ensure reproducibility
@@ -59,6 +63,9 @@ if __name__ == "__main__":
         args.seed = int(datetime.datetime.now().timestamp())
     np.random.seed(args.seed)
 
+    # make sure the script will find all the necessary files when run from a different directory
+    script_path = os.path.dirname(__file__)
+
     all_training_passed = None
     if args.test_type in ["both", "b", "training", "t"]:
         print("Running training tests...")
@@ -78,7 +85,7 @@ if __name__ == "__main__":
         results_df = pd.DataFrame(columns=["dataset", "arguments", "split", "train_success_rate", "test_success_rate", "reference_test_success", "test_difference", "train_time", "result"])
 
         for dataset in [DATASETS_MAP[ds] for ds in args.datasets]:
-            df = pd.read_csv(dataset.strip(), header=None)
+            df = pd.read_csv(f"{script_path}/datasets/{dataset.strip()}", header=None)
             for split in SPLITS:
                 # split the data set to train and test sets
                 df_train, df_test = train_test_split(df, test_size=split, random_state=args.seed)
@@ -99,21 +106,23 @@ if __name__ == "__main__":
                 for arguments, max_depth, min_samples_split, min_samples_leaf in zip(args.flp_args, args.max_depth, args.min_samples_split, args.min_samples_leaf):
                     # train the tree and save it
                     train_start = time.time() 
-                    os.system(f"./flp-fun training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
+                    os.system(f"{script_path}//flp-fun training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
                     train_time = time.time() - train_start
 
                     # try to parse the trained tree with my implementation, which is somewhat forgiving
-                    if os.system(f"./flp-ref trained_tree.tmp --echo_tree >/dev/null 2>flp-fun_parsing_stderr.out"):
+                    if os.system(f"{script_path}/flp-ref trained_tree.tmp --echo_tree >/dev/null 2>flp-fun_parsing_stderr.out"):
                         print("Trained tree could not be parsed by the reference implementation.")
                         parsing_failed_count += 1
                     else:
                         parsing_passed_count += 1
 
-                    os.system(f"./flp-fun trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
+                    # predict the train set, the accuracy should be very high
+                    os.system(f"{script_path}/flp-fun trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     train_success_rate = (predictions == train_y).sum() / train_y.shape[0] # this should be 1.0 for completely overfitted trees on the training set
 
-                    os.system(f"./flp-fun trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
+                    # predict the test set
+                    os.system(f"{script_path}/flp-fun trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     test_success_rate = (predictions == test_y).sum() / test_y.shape[0] # this will differ based on implementation
 
@@ -123,7 +132,7 @@ if __name__ == "__main__":
                     clf_predictions = clf.predict(test_X)
                     reference_test_success = (clf_predictions == test_y).sum() / test_y.shape[0]
 
-                    # this can even be negative if the reference implementation is worse.
+                    # compare prediction with the reference, this can even be negative if the reference implementation is worse.
                     test_difference = reference_test_success - test_success_rate
 
                     # evaluate the results
@@ -185,15 +194,15 @@ if __name__ == "__main__":
         total_count = 0
         
         # run inference tests from directories 'trained', 'values' and 'ground_truth', more tests can be added, the file names just need to match
-        for file in glob('trained/*.txt'): 
-            base_name = os.path.basename(file)
+        for file in glob(f"{script_path}/trained/*.txt"): 
+            base_name = os.path.basename(file).replace(".txt", ".csv")
             
             # run the inference
-            os.system(f"./flp-fun trained/{base_name} values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
+            os.system(f"{script_path}/flp-fun {file} {script_path}/values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
 
             # load the predictions and ground truth
             predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
-            ground_truth = pd.read_csv(f"ground_truth/{base_name}", header=None).to_numpy().flatten()
+            ground_truth = pd.read_csv(f"{script_path}/ground_truth/{base_name}", header=None).to_numpy().flatten()
 
             # compare the predictions to the ground truth, here any difference is a failure since the inference should be deterministic
             same = np.array_equal(predictions, ground_truth)

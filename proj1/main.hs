@@ -25,7 +25,7 @@ mainTrainingArgs :: [String] -> IO ()
 mainTrainingArgs [trainingFile, depthStr, minSamplesSplitStr, minSamplesLeafStr] = do
     let (depth, _) = integerOrError depthStr (error $ "Integer expected after the '-d' parameter, got: " ++ depthStr)
     let (minSamplesSplit, _) = integerOrError minSamplesSplitStr (error $ "Integer expected after the '-mss' parameter, got: " ++ minSamplesSplitStr)
-    let (minSamplesLeaf, _) = integerOrError minSamplesLeafStr (error $ "Integer expected after the '-msf' parameter, got: " ++ minSamplesLeafStr)
+    let (minSamplesLeaf, _) = integerOrError minSamplesLeafStr (error $ "Integer expected after the '-msl' parameter, got: " ++ minSamplesLeafStr)
     trainingInput <- readFile trainingFile
     let trainingData = loadTrainCSV trainingInput ','
     let tree = trainTree (depth, minSamplesSplit, minSamplesLeaf) trainingData
@@ -53,17 +53,17 @@ parseArgs [x, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound ::
 
 parseArgs [x, "-d", depth, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, depth, minSamplesSplit, "1"])
 parseArgs [x, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit]
-parseArgs [x, "-d", depth, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, depth, "2", minSamplesLeaf])
-parseArgs [x, "-msf", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-msf", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, minSamplesLeaf])
-parseArgs [x, "-msf", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-d", depth, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, "2", minSamplesLeaf])
+parseArgs [x, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-msl", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, minSamplesLeaf])
+parseArgs [x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
 
-parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf] = (mainTrainingArgs, [x, depth, minSamplesSplit, minSamplesLeaf])
-parseArgs [x, "-d", depth, "-msf", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-d", depth, "-msf", minSamplesLeaf] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-msf", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
-parseArgs [x, "-msf", minSamplesLeaf, "-d", depth, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
-parseArgs [x, "-msf", minSamplesLeaf, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msf", minSamplesLeaf]
+parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, minSamplesSplit, minSamplesLeaf])
+parseArgs [x, "-d", depth, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-d", depth, "-msl", minSamplesLeaf] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs [x, "-msl", minSamplesLeaf, "-d", depth, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs [x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
 
 parseArgs _ = error "Unexpected combination of command line arguments"
 
