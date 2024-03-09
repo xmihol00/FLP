@@ -44,26 +44,26 @@ mainEchoTree _ = error "Wrong parameters."
 parseArgs :: [String] -> ([String] -> IO (), [String])
 parseArgs [x, "--echo_tree"] = (mainEchoTree, [x])
 
-parseArgs [x] = (mainTraining, [x])
-parseArgs [x, y] = (mainInference, [x, y])
+parseArgs ["-2", x] = (mainTraining, [x])
+parseArgs ["-1", x, y] = (mainInference, [x, y])
 
-parseArgs [x, "-d", depth] = (mainTrainingArgs, [x, depth, "2", "1"])
-parseArgs [x, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, "1"])
-parseArgs [x, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), "2", minSamplesLeaf])
+parseArgs ["-2", x, "-d", depth] = (mainTrainingArgs, [x, depth, "2", "1"])
+parseArgs ["-2", x, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, "1"])
+parseArgs ["-2", x, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), "2", minSamplesLeaf])
 
-parseArgs [x, "-d", depth, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, depth, minSamplesSplit, "1"])
-parseArgs [x, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit]
-parseArgs [x, "-d", depth, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, "2", minSamplesLeaf])
-parseArgs [x, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-msl", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, minSamplesLeaf])
-parseArgs [x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-d", depth, "-mss", minSamplesSplit] = (mainTrainingArgs, [x, depth, minSamplesSplit, "1"])
+parseArgs ["-2", x, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit]
+parseArgs ["-2", x, "-d", depth, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, "2", minSamplesLeaf])
+parseArgs ["-2", x, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, show (maxBound :: Int), minSamplesSplit, minSamplesLeaf])
+parseArgs ["-2", x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
 
-parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, minSamplesSplit, minSamplesLeaf])
-parseArgs [x, "-d", depth, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-d", depth, "-msl", minSamplesLeaf] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
-parseArgs [x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
-parseArgs [x, "-msl", minSamplesLeaf, "-d", depth, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
-parseArgs [x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf] = (mainTrainingArgs, [x, depth, minSamplesSplit, minSamplesLeaf])
+parseArgs ["-2", x, "-d", depth, "-msl", minSamplesLeaf, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-mss", minSamplesSplit, "-d", depth, "-msl", minSamplesLeaf] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-mss", minSamplesSplit, "-msl", minSamplesLeaf, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-msl", minSamplesLeaf, "-d", depth, "-mss", minSamplesSplit] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
+parseArgs ["-2", x, "-msl", minSamplesLeaf, "-mss", minSamplesSplit, "-d", depth] = parseArgs [x, "-d", depth, "-mss", minSamplesSplit, "-msl", minSamplesLeaf]
 
 parseArgs _ = error "Unexpected combination of command line arguments"
 

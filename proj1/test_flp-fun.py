@@ -112,7 +112,7 @@ if __name__ == "__main__":
                 for arguments, max_depth, min_samples_split, min_samples_leaf in zip(args.flp_args, args.max_depth, args.min_samples_split, args.min_samples_leaf):
                     # train the tree and save it
                     train_start = time.time() 
-                    os.system(f"{script_path}//flp-fun training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
+                    os.system(f"{script_path}/flp-fun -2 training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
                     train_time = time.time() - train_start
 
                     # try to parse the trained tree with my implementation, which is somewhat forgiving
@@ -123,12 +123,12 @@ if __name__ == "__main__":
                         parsing_passed_count += 1
 
                     # predict the train set, the accuracy should be very high
-                    os.system(f"{script_path}/flp-fun trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
+                    os.system(f"{script_path}/flp-fun -1 trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     train_success_rate = (predictions == train_y).sum() / train_y.shape[0] # this should be 1.0 for completely overfitted trees on the training set
 
                     # predict the test set
-                    os.system(f"{script_path}/flp-fun trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
+                    os.system(f"{script_path}/flp-fun -1 trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
                     predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
                     test_success_rate = (predictions == test_y).sum() / test_y.shape[0] # this will differ based on implementation
 
@@ -204,7 +204,7 @@ if __name__ == "__main__":
             base_name = os.path.basename(file).replace(".txt", ".csv")
             
             # run the inference
-            os.system(f"{script_path}/flp-fun {file} {script_path}/values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
+            os.system(f"{script_path}/flp-fun -1 {file} {script_path}/values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
 
             # load the predictions and ground truth
             predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
