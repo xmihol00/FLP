@@ -33,11 +33,12 @@ import Parsing (
 
 data BinaryTree = Node { index :: Int, threshold :: Double, leftTree :: BinaryTree, rightTree :: BinaryTree} | Leaf { className :: String }
 
+-- enable read and show functions to work on the BinaryTree data type
 instance Read BinaryTree where
     readsPrec _ input = [readTree input]
 instance Show BinaryTree where
     show tree = treeString
-        where treeString = init $ showBinaryTree tree 0
+        where treeString = init $ showBinaryTree tree 0 -- use init to discard the last 'optimistic' empty line, see showBinaryTree for a Leaf
 
 showBinaryTree :: BinaryTree -> Int -> String
 showBinaryTree Node {..} depth = treeString
@@ -53,7 +54,7 @@ showBinaryTree Node {..} depth = treeString
         -- concatenate the values of the current node with the indent subtrees
         treeString = indent ++ "Node: " ++ show index ++ ", " ++ show threshold ++ "\n" ++ leftRest ++ rightRest
 
-showBinaryTree (Leaf className) depth = indent ++ "Leaf: " ++ className ++ "\n" -- generate correctly indented leaf node
+showBinaryTree (Leaf className) depth = indent ++ "Leaf: " ++ className ++ "\n" -- generate correctly indented leaf node and expect the tree to continue at a new line
     where indent = take (2 * depth) [' ', ' ' ..]
 
 readTree :: String -> (BinaryTree, String)
@@ -171,13 +172,21 @@ loadTrainCSV strData separator = (featuresDouble, trimmedClasses)
         trimmedClasses = [(trim $ head classRow, idx) | (classRow, idx) <- zip classes [0, 1 ..]]
 
 creteThresholds :: [[Double]] -> [[Double]]
-creteThresholds selectedFeatures = ranges
-    where sortedSelectedFeatures = map L.sort selectedFeatures
-          ranges = [zipWith (\x y -> (x + y) / 2) feature (tail feature) | feature <- sortedSelectedFeatures]
+creteThresholds selectedFeatures = thresholds
+    where 
+        sortedSelectedFeatures = map L.sort selectedFeatures
+        -- threshold is regarded as an arithmetic mean between two consecutive feature values, 
+        -- this can be achieved by zipping the sorted list and its tail
+        thresholds = [zipWith (\x y -> (x + y) / 2) feature (tail feature) | feature <- sortedSelectedFeatures]
 
 mostOccurrences :: Ord a => [a] -> a
-mostOccurrences list = fst $ foldr1 (\x y -> if snd x >= snd y then x else y) pairs
-    where pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
+mostOccurrences list = mostOccurant
+    where 
+        -- first sort the list, second group the same sequences, third create pairs with 'a' and number of its occurrences
+        pairs = map (\x -> (head x, length x)) $ L.group $ L.sort list
+        -- fourth use foldr for maximum reduction, fifth take just the 'a' and disregard the number of occurrences
+        -- note: both 'x2 >= y2' and 'x2 > y2' works
+        mostOccurant = fst $ foldr1 (\x@(_, x2) y@(_, y2) -> if x2 >= y2 then x else y) pairs
 
 -- inefficient training, generates all possible solutions for each node and then reduces them to the best one
 trainTreeMemoryInefficient :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
@@ -187,59 +196,71 @@ trainTreeMemoryInefficient (depth, minSamplesSplit, minSamplesLeaf) (features, c
     | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
     | length (L.nub classNames) == 1 = Leaf (head classNames)
     | otherwise = Node bestFeatureIdx bestThreshold (trainTreeMemoryInefficient nextParams (features, bestLeftClasses)) (trainTreeMemoryInefficient nextParams (features, bestRightClasses))
-    where nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
-          (classNames, indices) = unzip classes
-          -- filter still relevant features
-          selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
-          -- compute thresholds from relevant features
-          thresholdTable = creteThresholds selectedFeatureTable
-          -- partitioning function
-          classesSplit = \op -> [[[classPair
-                                    | (feature, classPair) <- zip selectedFeatures classes, op feature threshold]
-                                        | threshold <- thresholds]
-                                            | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
-          -- perform partitioning based on the relation to threshold
-          leftClassesTables = classesSplit (<)
-          rightClassesTables = classesSplit (>=)
-          -- generating all possible solutions
-          giniTable = [[(giniLR (leftClasses, rightClasses), leftClasses, rightClasses, threshold, featureIdx)
-                        | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
-                            | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
-          giniFlat = concat giniTable
-          -- finding the best solution
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
+    where 
+        nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
+        (classNames, indices) = unzip classes
+        -- filter still relevant features
+        selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
+        -- compute thresholds from relevant features
+        thresholdTable = creteThresholds selectedFeatureTable
+        -- partitioning function
+        classesSplit = \op -> [[[classPair
+                                  | (feature, classPair) <- zip selectedFeatures classes, op feature threshold]
+                                      | threshold <- thresholds]
+                                          | (thresholds, selectedFeatures) <- zip thresholdTable selectedFeatureTable]
+        -- perform partitioning based on the relation to threshold
+        leftClassesTables = classesSplit (<)
+        rightClassesTables = classesSplit (>=)
+        -- generating all possible solutions
+        giniTable = [[(giniLR (leftClasses, rightClasses), leftClasses, rightClasses, threshold, featureIdx)
+                      | (leftClasses, rightClasses, threshold) <- zip3 leftClassesTable rightClassesTable thresholds]
+                          | (leftClassesTable, rightClassesTable, thresholds, featureIdx) <- L.zip4 leftClassesTables rightClassesTables thresholdTable [0, 1 ..]]
+        giniFlat = concat giniTable
+        -- finding the best solution (use flodr for minimum reduction)
+        (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) =
             foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left) giniFlat
 
 giniZip :: ([(String, Int)], [(String, Int)]) -> Double -> Int -> (Double, [(String, Int)], [(String, Int)], Double, Int)
 giniZip list@(leftList, rightList) threshold index = (giniLR list, leftList, rightList, threshold, index)
  
 giniReduce :: [(Double, [(String, Int)], [(String, Int)], Double, Int)] -> (Double, [(String, Int)], [(String, Int)], Double, Int)
+-- use of foldr for minimum reduction
 giniReduce = foldr1 (\right@(x, _, _, _, _) left@(y, _, _, _, _) -> if x <= y then right else left)
 
 thresholdPartition :: Double -> [(Double, (String, Int))] -> ([(String, Int)], [(String, Int)])
-thresholdPartition threshold = foldr (\(feature, classPair) (leftList, rightList) -> if feature < threshold then (classPair:leftList, rightList) else (leftList, classPair:rightList)) ([], [])
+-- partition the list based on a threshold into two list in one linear pass using foldr and starting from empty lists
+thresholdPartition threshold = foldr (\(feature, classPair) (leftList, rightList) -> 
+    if feature < threshold then (classPair:leftList, rightList) else (leftList, classPair:rightList)) ([], [])
 
+-- memory efficient solution, which reduces partially to the best solution
 trainTree :: (Int, Int, Int) -> ([[Double]], [(String, Int)]) -> BinaryTree
 trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
+     -- maximum depth reached, node must become Leaf
     | depth == 0 = Leaf (mostOccurrences classNames)
+     -- too small node to be split, must become Leaf
     | length classNames <= minSamplesSplit = Leaf (mostOccurrences classNames)
+    -- left subtree or right subtree would be to small, already this node must become Leaf
     | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
+    -- only one class left in this node, i.e. it is a Leaf node
     | length (L.nub classNames) == 1 = Leaf (head classNames)
+    -- split the node
     | otherwise = Node bestFeatureIdx bestThreshold (trainTree nextParams (features, bestLeftClasses)) (trainTree nextParams (features, bestRightClasses))
-    where nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
-          (classNames, indices) = unzip classes
-          -- filter still relevant features 
-          selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
-          -- compute thresholds from relevant features
-          thresholdTable = creteThresholds selectedFeatureTable
-          -- reduce generated solutions in batches
-          (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = 
-            giniReduce [ -- reduce to the best overall
-                giniReduce [ -- reduce to the best for each feature index
-                    giniZip (thresholdPartition threshold (zip selectedFeatures classes)) threshold featureIdx | threshold <- thresholds
-                ] | (thresholds, selectedFeatures, featureIdx) <- L.zip3 thresholdTable selectedFeatureTable [0, 1 ..]
-            ]
+    where 
+        nextParams = (depth - 1, minSamplesSplit, minSamplesLeaf)
+        (classNames, indices) = unzip classes
+        -- filter still relevant features 
+        selectedFeatureTable = [[feature !! index | index <- indices] | feature <- features]
+        -- compute thresholds from relevant features
+        thresholdTable = creteThresholds selectedFeatureTable
+        -- reduce generated solutions in batches
+        (_, bestLeftClasses, bestRightClasses, bestThreshold, bestFeatureIdx) = 
+          giniReduce [ -- reduce to the best overall
+              giniReduce [ -- reduce to the best for each feature index
+                  giniZip (thresholdPartition threshold (zip selectedFeatures classes)) threshold featureIdx | threshold <- thresholds
+              ] | (thresholds, selectedFeatures, featureIdx) <- L.zip3 thresholdTable selectedFeatureTable [0, 1 ..]
+          ]
 
+-- fill in default values to make specific functions
 trainTreeMaxDepth :: Int -> ([[Double]], [(String, Int)]) -> BinaryTree
 trainTreeMaxDepth depth = trainTree (depth, 2, 1)
 
