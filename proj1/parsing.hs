@@ -88,8 +88,8 @@ numberOrError input parser maybeError = (num, rest)
          -- convert the rest if the input back to String
         rest = TL.unpack restPacked
 
--- define conversions to specific data types
-integerOrError :: Integral a => String -> Either String (a, TL.Text) -> (a, String)
+-- define conversions to specific Numerical data types
+integerOrError :: String -> Either String (Int, TL.Text) -> (Int, String)
 integerOrError input = numberOrError input TL.decimal
 
 integerOrLineError :: String -> Int -> (Int, String)
@@ -103,25 +103,36 @@ doubleOrLineError input line = doubleOrError input (formattedError line $ "Unabl
 
 parseValuesLine :: String -> Int -> ([Double], String)
 parseValuesLine str line
-    | end = ([value], restSpaces2)
+    -- end of a line or of the input, end of recursion
+    | null str || head str == '\n' = ([], str)
     | otherwise = (value:values, rest)
-    where (value, restDouble) = doubleOrLineError str line
-          restSpaces1 = skipWhiteSpaces restDouble
-          restComma
-            | null restSpaces1 || head restSpaces1 == '\n' = restSpaces1
-            | head restSpaces1 == ',' = tail restSpaces1
-            | otherwise = formattedError line $ "Comma expected at: '" ++ takeErrorSample restSpaces1 ++ "...'"
-          restSpaces2 = skipWhiteSpaces restComma
-          end = null restSpaces2 || head restSpaces2 == '\n'
-          (values, rest) = parseValuesLine restSpaces2 $ line + 1
+    where 
+        -- parse real number
+        (value, restDouble) = doubleOrLineError str line
+        -- remove white spaces after the number
+        restSpaces1 = skipWhiteSpaces restDouble
+        -- check that the next character is new line, comma or its the end of the text, otherwise raise error
+        restComma
+          | null restSpaces1 || head restSpaces1 == '\n' = restSpaces1
+          | head restSpaces1 == ',' = tail restSpaces1
+          | otherwise = formattedError line $ "Comma expected at: '" ++ takeErrorSample restSpaces1 ++ "...'"
+        -- skip spaces again a after a comma
+        restSpaces2 = skipWhiteSpaces restComma
+        -- parse rest of the line (only called if 'otherwise' branch is used above)
+        (values, rest) = parseValuesLine restSpaces2 $ line + 1
 
 parseValues :: String -> Int -> ([[Double]], String)
 parseValues str line
+    -- nothing relevant in the input anymore, end of the recursion
     | null $ skipWhiteSpacesAndNewLines str = ([], [])
     | otherwise = (parsedRow:parsedRows, restLines)
-    where (parsedRow, restLine) = parseValuesLine str line
-          nextRow
-            | null restLine = restLine
-            | head restLine == '\n' = tail restLine
-            | otherwise = formattedError line $ "Unexpected character at: '" ++ takeErrorSample restLine ++ "...'"
-          (parsedRows, restLines) = parseValues nextRow $ line + 1
+    where 
+        -- parse the the first row
+        (parsedRow, restLine) = parseValuesLine str line
+        -- move to the next line
+        nextRow
+          | null restLine = restLine
+          | head restLine == '\n' = tail restLine
+          | otherwise = formattedError line $ "Unexpected character at: '" ++ takeErrorSample restLine ++ "...'"
+        -- parse the rest of the rows (only called if 'otherwise' branch is used above)
+        (parsedRows, restLines) = parseValues nextRow $ line + 1

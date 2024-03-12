@@ -1,8 +1,14 @@
 CC=ghc
-CFLAGS=-Wall -Wextra
+CFLAGS=-Wall -Wextra -O3
 SRC=*.hs
 
-.PHONY: all
+.PHONY: all clean pack
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o flp-fun
+
+clean:
+	rm flp-fun *.hi *.o
+
+pack:
+	zip -r xmihol00.zip *.hs Makefile README.md ground_truth/ datasets/ trained/ values/ figs/ test_flp-fun.py generate_ref.py cart_tree.py
