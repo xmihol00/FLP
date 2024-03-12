@@ -1,3 +1,12 @@
+--------------------------------------------------------------------------------------------------------------------
+--   project: flp-fun (1st project regarding decision trees to Functional and Logic Programming course at FIT, BUT)
+--    author: David Mihola (xmihol00)
+--     email: xmihol00@stud.fit.vutbr.cz
+--      date: 31. 3. 2024
+-- file info: Tree data type and function for reading a tree from file, performing inference on a previously
+--            trained tree and training a new tree from given data.
+--------------------------------------------------------------------------------------------------------------------
+
 {-# LANGUAGE RecordWildCards #-} -- to be able to use the created named data types conveniently
 
 module Tree (

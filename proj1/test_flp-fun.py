@@ -1,3 +1,18 @@
+#############################################################################################################################
+#   project: flp-fun (1st project regarding decision trees to Functional and Logic Programming course at FIT, BUT)
+#    author: David Mihola (xmihol00)
+#     email: xmihol00@stud.fit.vutbr.cz
+#      date: 31. 3. 2024
+# file info: Script testing the Haskell implementation against a scikit-learn implementation of a decision tree classifier.
+#############################################################################################################################
+
+# usage e.g.: python ../test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
+#           : python ../test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
+#           : python ../test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
+#           : python ../test_flp-fun.py -ds p h w -md 4 8 -mss 3 8 -msl 4 7 -fa "-d 4 -mss 3 -msl 4" "-d 8 -mss 7 -msl 6" -tt t
+#           : mkdir -p test_results && cd test_results && python ../test_flp-fun.py
+# or just   : python ../test_flp-fun.py
+
 import os
 import pandas as pd
 import numpy as np
@@ -8,19 +23,6 @@ import time
 import datetime
 from glob import glob
 from termcolor import colored
-
-###################################################
-# Test script for FLP project 1 2024 - flp-fun
-# Author: David Mihola
-# e-mail: xmihol00@stud.fit.vutbr.cz
-###################################################
-
-# usage e.g.: python ../test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
-#           : python ../test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
-#           : python ../test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
-#           : python ../test_flp-fun.py -ds p h w -md 4 8 -mss 3 8 -msl 4 7 -fa "-d 4 -mss 3 -msl 4" "-d 8 -mss 7 -msl 6" -tt t
-#           : mkdir -p test_results && cd test_results && python ../test_flp-fun.py
-# or just   : python ../test_flp-fun.py
 
 DATASETS_MAP = {
     'p': "penguins_all.csv",

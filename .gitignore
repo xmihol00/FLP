@@ -10,3 +10,4 @@ boston_housing.csv
 *.log
 *.out
 flp-ref
+*.zip

@@ -1,3 +1,11 @@
+--------------------------------------------------------------------------------------------------------------------
+--   project: flp-fun (1st project regarding decision trees to Functional and Logic Programming course at FIT, BUT)
+--    author: David Mihola (xmihol00)
+--     email: xmihol00@stud.fit.vutbr.cz
+--      date: 31. 3. 2024
+-- file info: Parsing of inputs, reading of files and performing the desired actions based on passed parameters.
+--------------------------------------------------------------------------------------------------------------------
+
 module Main (main) where
 
 import qualified System.Environment as E
@@ -71,4 +79,5 @@ main :: IO ()
 main = do
     args <- E.getArgs
     let (function, parsedArgs) = parseArgs args
+    -- execute the required function based on given parameters
     function parsedArgs

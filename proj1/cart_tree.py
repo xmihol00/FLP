@@ -1,13 +1,20 @@
+#############################################################################################################################
+#   project: flp-fun (1st project regarding decision trees to Functional and Logic Programming course at FIT, BUT)
+#    author: David Mihola (xmihol00)
+#     email: xmihol00@stud.fit.vutbr.cz
+#      date: 31. 3. 2024
+# file info: Script to visualize a decision tree and to test an implementation of a decision tree in an imperative language.
+#############################################################################################################################
+
+# Usage: python cart_tree.py <dataset_file_path> 
+# datasets are available in the datasets directory
+
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 import graphviz
 import sys
 import pandas as pd
-
-# Script to visualize a decision tree and to test an implementation of a decision tree in an imperative language
-# Usage: python cart_tree.py <dataset_file_path> 
-# datasets are available in the datasets directory
 
 MAX_DEPTH = 2**31 - 1
 MIN_SAMPLES_LEAF = 1

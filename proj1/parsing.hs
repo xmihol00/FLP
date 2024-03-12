@@ -1,3 +1,11 @@
+--------------------------------------------------------------------------------------------------------------------
+--   project: flp-fun (1st project regarding decision trees to Functional and Logic Programming course at FIT, BUT)
+--    author: David Mihola (xmihol00)
+--     email: xmihol00@stud.fit.vutbr.cz
+--      date: 31. 3. 2024
+-- file info: Helper functions for parsing of textual data.
+--------------------------------------------------------------------------------------------------------------------
+
 module Parsing (
     isRight,
     takeRestOfLine,
