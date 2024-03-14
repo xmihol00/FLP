@@ -6,12 +6,12 @@
 # file info: Script testing the Haskell implementation against a scikit-learn implementation of a decision tree classifier.
 #############################################################################################################################
 
-# usage e.g.: python ../test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
-#           : python ../test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
-#           : python ../test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
-#           : python ../test_flp-fun.py -ds p h w -md 4 8 -mss 3 8 -msl 4 7 -fa "-d 4 -mss 3 -msl 4" "-d 8 -mss 7 -msl 6" -tt t
-#           : mkdir -p test_results && cd test_results && python ../test_flp-fun.py
-# or just   : python ../test_flp-fun.py
+# usage e.g.: python3 ../test_flp-fun.py -ds p h w -md 4 8 -fa "-d 4" "-d 8" -tt t
+#           : python3 ../test_flp-fun.py -ds p h w -mss 3 8 -fa "-mss 3" "-mss 8" -tt t
+#           : python3 ../test_flp-fun.py -ds p h w -msl 4 7 -fa "-msl 4" "-msl 7" -tt t
+#           : python3 ../test_flp-fun.py -ds p h w -md 4 8 -mss 3 8 -msl 4 7 -fa "-d 4 -mss 3 -msl 4" "-d 8 -mss 7 -msl 6" -tt t
+#           : mkdir -p test_results && cd test_results && python3 ../test_flp-fun.py
+# or just   : python3 ../test_flp-fun.py
 
 import os
 import pandas as pd
@@ -73,6 +73,8 @@ if __name__ == "__main__":
 
     # make sure the script will find all the necessary files when run from a different directory
     script_path = os.path.dirname(__file__)
+    if not script_path:
+        script_path = "."
 
     all_training_passed = None
     if args.test_type in ["both", "b", "training", "t"]:
