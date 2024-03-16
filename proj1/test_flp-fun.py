@@ -32,7 +32,7 @@ DATASETS_MAP = {
     # TODO add some more maybe synthetic datasets to test something specific
 }
 
-SPLITS = [0.0000001, 0.1, 0.2, 0.3, 0.4, 0.5] # test/train splits of the datasets
+SPLITS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] # test/train splits of the datasets
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run tests on flp-fun")
@@ -97,8 +97,12 @@ if __name__ == "__main__":
         for dataset in [DATASETS_MAP[ds] for ds in args.datasets]:
             df = pd.read_csv(f"{script_path}/datasets/{dataset.strip()}", header=None)
             for split in SPLITS:
-                # split the data set to train and test sets
-                df_train, df_test = train_test_split(df, test_size=split, random_state=args.seed)
+                if split > 0:
+                    # split the data set to train and test sets
+                    df_train, df_test = train_test_split(df, test_size=split, random_state=args.seed)
+                else:
+                    df_train = df.copy()
+                    df_test = df.copy()
 
                 # save the training split to train a decision tree
                 df_train.to_csv("training_data.tmp", index=False, header=False)

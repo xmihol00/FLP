@@ -172,3 +172,6 @@ isPalindrome xs = start == reverse end -- porovnani prvni poloviny a obracene dr
           start = take half xs
           odd = mod len 2 -- pokud je delka licha, prostredni znak neni treba porovnavat
           end = drop (half+odd) xs
+
+myFold _ acc [] = acc
+myFold f acc (x:xs) = f (myFold f acc xs) x
