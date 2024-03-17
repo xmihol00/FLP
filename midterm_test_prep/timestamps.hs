@@ -10,3 +10,4 @@ splitColon str
     | null second = [first]
     | otherwise = first:(splitColon $ tail second)
     where (first, second) = mySpan str ':'
+
