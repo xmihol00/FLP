@@ -81,6 +81,23 @@ maybeInsert k v (BinNode key val l r)
         lL = BinNode key val (getSomething newL) r
         rR = BinNode key val l (getSomething newR)
 
+maybeInInsert :: (Ord k) => k -> v -> BinTree k v -> Maybe (BinTree k v)
+maybeInInsert k v BinEmpty = Just (BinNode k v BinEmpty BinEmpty)
+maybeInInsert k v (BinNode key val l r) =
+    let
+        newL = maybeInsert k v l
+        newR = maybeInsert k v r
+        isSomething Nothing = False
+        isSomething(Just _) = True
+        getSomething (Just x) = x
+        lL = BinNode key val (getSomething newL) r
+        rR = BinNode key val l (getSomething newR)
+    in
+       case compare k key of
+           EQ -> Nothing
+           LT -> if isSomething newL then Just lL else Nothing
+           GT -> if isSomething newR then Just rR else Nothing
+
 
 findBin :: Ord k => BinTree k a -> k -> [a]
 findBin BinEmpty _ = []
@@ -144,5 +161,15 @@ instance Ord OrdTest where
 tupTestTup (a, b) = a + b
 tupTestParams a b = a + b
 
+cat :: [a] -> [a] -> [a]
 cat [] ys = ys
 cat (x:xs) ys = x:(cat xs ys)
+
+data AT = A AT AT | S AT AT | V String | U AT
+
+um :: AT -> AT
+um (U (S a b)) = S (um b) (um a)
+um (A a b) = A (um a) (um b)
+um (S a b) = S (um a) (um b)
+um (U x) = U (um x)
+um leaf = leaf

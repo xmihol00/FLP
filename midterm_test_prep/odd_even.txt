@@ -1,0 +1,9 @@
+ODD 0
+even 1
+oDD 2   
+eveN 3
+odd 4                                 
+
+
+even 5  
+odd 6 :D             :)   
