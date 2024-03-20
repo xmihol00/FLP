@@ -1,0 +1,5 @@
+Node: 0, 1.5
+  Leaf: B
+  Node: 0, 2.5
+    Leaf: C
+    Leaf: A

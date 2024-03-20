@@ -11,12 +11,12 @@ from glob import glob
 import os
 
 
-for file in glob("datasets/*.txt"):
+for file in glob("edge_datasets/*.csv"):
     base_name = os.path.basename(file)
     df = pd.read_csv(file)
     df = df.iloc[:, :-1]
     values_file = f"values/{base_name}"
     df.to_csv(values_file, index=False, header=False)
-    os.system(f"./flp-fun -2 {file} > trained/{base_name}")
+    os.system(f"./flp-fun -2 {file} > edge_trained/{base_name}")
     # generate a reference classification output for each dataset
-    os.system(f"./flp-fun -1 trained/{base_name} {values_file} > ground_truth/{base_name}")
+    os.system(f"./flp-fun -1 edge_trained/{base_name} {values_file} > edge_ground_truth/{base_name}")
