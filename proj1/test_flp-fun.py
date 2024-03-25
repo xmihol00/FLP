@@ -75,6 +75,8 @@ if __name__ == "__main__":
     script_path = os.path.dirname(__file__)
     if not script_path:
         script_path = "."
+    
+    strip_string = lambda x: x.strip() if isinstance(x, str) else x # strip string values in the dataframes
 
     all_training_passed = None
     if args.test_type in ["both", "b", "training", "t"]:
@@ -90,9 +92,7 @@ if __name__ == "__main__":
         passed_count = 0
         failed_count = 0
         total_count = 0
-        parsing_failed_count = 0
-        parsing_passed_count = 0
-        results_df = pd.DataFrame(columns=["dataset", "arguments", "split", "train_success_rate", "test_success_rate", "reference_test_success", "test_difference", "train_time", "result"])
+        results_df = pd.DataFrame(columns=["dataset", "arguments", "split", "train_success_rate", "test_success_rate", "reference_train_success_rate", "reference_test_success_rate", "test_difference", "train_time", "result"])
 
         for dataset in [DATASETS_MAP[ds] for ds in args.datasets]:
             df = pd.read_csv(f"{script_path}/datasets/{dataset.strip()}", header=None)
@@ -108,8 +108,10 @@ if __name__ == "__main__":
                 df_train.to_csv("training_data.tmp", index=False, header=False)
 
                 # remove the target column from the data sets
+                df_train[df_train.columns[-1]] = df_train[df_train.columns[-1]].apply(strip_string)
                 train_y = df_train.pop(df_train.columns[-1]).to_numpy()
                 train_X = df_train
+                df_test[df_test.columns[-1]] = df_test[df_test.columns[-1]].apply(strip_string)
                 test_y = df_test.pop(df_test.columns[-1]).to_numpy()
                 test_X = df_test
                 # save the test and train sets as samples to be predicted by the trained tree
@@ -123,37 +125,42 @@ if __name__ == "__main__":
                     os.system(f"{script_path}/flp-fun -2 training_data.tmp {arguments} | tee -a flp-fun_training_stdout.out >trained_tree.tmp 2>flp-fun_training_stderr.out")
                     train_time = time.time() - train_start
 
-                    # try to parse the trained tree with my implementation, which is somewhat forgiving
-                    if os.system(f"{script_path}/flp-ref trained_tree.tmp --echo_tree >/dev/null 2>flp-fun_parsing_stderr.out"):
-                        print("Trained tree could not be parsed by the reference implementation.")
-                        parsing_failed_count += 1
-                    else:
-                        parsing_passed_count += 1
-
-                    # predict the train set, the accuracy should be very high
+                     # predict the train set, the accuracy should be very high
                     os.system(f"{script_path}/flp-fun -1 trained_tree.tmp train_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
-                    predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
-                    train_success_rate = (predictions == train_y).sum() / train_y.shape[0] # this should be 1.0 for completely overfitted trees on the training set
+                    train_predictions = pd.read_csv("predictions.tmp", header=None).apply(strip_string).to_numpy().flatten()
+                    train_success_rate = (train_predictions == train_y).sum() / train_y.shape[0] # this should be 1.0 for completely overfitted trees on the training set
 
                     # predict the test set
                     os.system(f"{script_path}/flp-fun -1 trained_tree.tmp test_X.tmp | tee -a flp-fun_training_stdout.out >predictions.tmp 2>flp-fun_training_stderr.out") # TODO possibly add arguments for flp-fun inference
-                    predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
-                    test_success_rate = (predictions == test_y).sum() / test_y.shape[0] # this will differ based on implementation
+                    test_predictions = pd.read_csv("predictions.tmp", header=None).apply(strip_string).to_numpy().flatten()
+                    test_success_rate = (test_predictions == test_y).sum() / test_y.shape[0] # this will differ based on implementation
 
                     # reference implementation
                     clf = DecisionTreeClassifier(max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_split, random_state=args.seed)
                     clf.fit(train_X, train_y)
-                    clf_predictions = clf.predict(test_X)
-                    reference_test_success = (clf_predictions == test_y).sum() / test_y.shape[0]
+                    clf_test_predictions = clf.predict(test_X)
+                    clf_train_predictions = clf.predict(train_X)
+                    reference_test_success = (clf_test_predictions == test_y).sum() / test_y.shape[0]
+                    reference_train_success = (clf_train_predictions == train_y).sum() / train_y.shape[0]
+
+                    #misses = train_predictions != train_y
+                    #indices = np.where(misses)[0]
+                    #train_misses = train_predictions[misses]
+                    #clf_train_misses = clf_train_predictions[clf_train_predictions != train_y]
+                    #if train_misses.size > 0:
+                    #    print(f"Train misses: {train_misses}, actual: {clf_train_misses}", indices)
+                    #    exit(1)
 
                     # compare prediction with the reference, this can even be negative if the reference implementation is worse.
                     test_difference = reference_test_success - test_success_rate
-
                     # evaluate the results
                     message = "PASSED"
                     if test_difference > args.epsilon:
                         all_training_passed = False
                         print(f"Test failed for dataset {dataset}, split {split}, arguments {arguments}. Difference is {test_difference}.")
+                        print(f"Ground truth: {test_y}")
+                        print(f"Reference:    {clf_test_predictions}")
+                        print(f"Actual:       {test_predictions}")
                         message = "FAILED"
                         failed_count += 1
                     else:
@@ -163,7 +170,7 @@ if __name__ == "__main__":
                     # write the results to a dataframe
                     arguments = arguments.rjust(arg_max_len, " ")
                     results_df.loc[len(results_df.index)] = [
-                        dataset, arguments, round(split, 2), train_success_rate, test_success_rate, reference_test_success, test_difference, train_time, message
+                        dataset, arguments, round(split, 2), train_success_rate, test_success_rate, reference_train_success, reference_test_success, test_difference, train_time, message
                     ]
 
 
@@ -183,8 +190,6 @@ if __name__ == "__main__":
                 f.write(f"Failed:         {failed_count}/{total_count}\n")
                 f.write(f"Success rate:   {passed_count/total_count*100:.2f} %\n")
                 f.write(f"Failed rate:    {failed_count/total_count*100:.2f} %\n")
-                f.write(f"Parsing failed: {parsing_failed_count}/{total_count}\n")
-                f.write(f"Parsing passed: {parsing_passed_count}/{total_count}\n")
                 f.write(f"Results saved to training_tests_result.csv")
 
         try:
@@ -215,8 +220,8 @@ if __name__ == "__main__":
             os.system(f"{script_path}/flp-fun -1 {file} {script_path}/values/{base_name} | tee -a flp-fun_inference_stdout.out >predictions.tmp 2>flp-fun_inference_stderr.out")
 
             # load the predictions and ground truth
-            predictions = pd.read_csv("predictions.tmp", header=None).to_numpy().flatten()
-            ground_truth = pd.read_csv(f"{script_path}/ground_truth/{base_name}", header=None).to_numpy().flatten()
+            predictions = pd.read_csv("predictions.tmp", header=None).apply(strip_string).to_numpy().flatten()
+            ground_truth = pd.read_csv(f"{script_path}/ground_truth/{base_name}", header=None).apply(strip_string).to_numpy().flatten()
 
             # compare the predictions to the ground truth, here any difference is a failure since the inference should be deterministic
             same = np.array_equal(predictions, ground_truth)

@@ -1,0 +1,13 @@
+Node: 1, -0.45999999999999996
+  Node: 1, -0.565
+    Leaf: A
+    Node: 0, 7.75
+      Node: 2, 0.20500000000000002
+        Leaf: C
+        Leaf: A
+      Leaf: A
+  Node: 0, -8.9
+    Leaf: C
+    Node: 1, 0.615
+      Leaf: B
+      Leaf: C

@@ -247,7 +247,7 @@ trainTree (depth, minSamplesSplit, minSamplesLeaf) (features, classes)
      -- maximum depth reached, node must become Leaf
     | depth == 0 = Leaf (mostOccurrences classNames)
      -- too small node to be split, must become Leaf
-    | length classNames <= minSamplesSplit = Leaf (mostOccurrences classNames)
+    | length classNames < minSamplesSplit = Leaf (mostOccurrences classNames)
     -- left subtree or right subtree would be to small, already this node must become Leaf
     | length bestLeftClasses < minSamplesLeaf || length bestRightClasses < minSamplesLeaf = Leaf (mostOccurrences classNames)
     -- only one class left in this node, i.e. it is a Leaf node

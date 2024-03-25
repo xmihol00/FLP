@@ -1,0 +1,6 @@
+All tests PASSED.
+Passed:         24/24
+Failed:         0/24
+Success rate:   100.00 %
+Failed rate:    0.00 %
+Results saved to training_tests_result.csv

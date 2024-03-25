@@ -1,0 +1,8 @@
+All tests PASSED.
+Passed:         53/53
+Failed:         0/53
+Success rate:   100.00 %
+Failed rate:    0.00 %
+Parsing failed: 0/53
+Parsing passed: 53/53
+Results saved to training_tests_result.csv

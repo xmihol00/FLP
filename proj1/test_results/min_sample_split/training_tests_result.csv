@@ -1,0 +1,37 @@
+dataset,arguments,split,train_success_rate,test_success_rate,reference_test_success,test_difference,train_time,result
+penguins_all.csv,-mss 3, 0.000, 0.997, 0.997, 0.988,-0.009, 0.201,PASSED
+penguins_all.csv,-mss 8, 0.000, 0.988, 0.988, 0.958,-0.030, 0.200,PASSED
+penguins_all.csv,-mss 3, 0.100, 0.997, 0.971, 1.000, 0.029, 0.225,PASSED
+penguins_all.csv,-mss 8, 0.100, 0.977, 0.971, 0.971, 0.000, 0.226,PASSED
+penguins_all.csv,-mss 3, 0.200, 0.996, 0.985, 1.000, 0.015, 0.178,PASSED
+penguins_all.csv,-mss 8, 0.200, 0.970, 0.985, 0.970,-0.015, 0.140,PASSED
+penguins_all.csv,-mss 3, 0.300, 0.996, 0.980, 0.980, 0.000, 0.101,PASSED
+penguins_all.csv,-mss 8, 0.300, 0.970, 0.980, 0.930,-0.050, 0.100,PASSED
+penguins_all.csv,-mss 3, 0.400, 1.000, 0.955, 0.940,-0.015, 0.075,PASSED
+penguins_all.csv,-mss 8, 0.400, 0.970, 0.955, 0.888,-0.067, 0.074,PASSED
+penguins_all.csv,-mss 3, 0.500, 0.988, 0.916, 0.886,-0.030, 0.048,PASSED
+penguins_all.csv,-mss 8, 0.500, 0.976, 0.886, 0.874,-0.012, 0.049,PASSED
+ housing_all.csv,-mss 3, 0.000, 0.977, 0.977, 0.926,-0.051, 0.930,PASSED
+ housing_all.csv,-mss 8, 0.000, 0.924, 0.924, 0.843,-0.081, 0.931,PASSED
+ housing_all.csv,-mss 3, 0.100, 0.980, 0.675, 0.675, 0.000, 0.651,PASSED
+ housing_all.csv,-mss 8, 0.100, 0.932, 0.700, 0.675,-0.025, 0.650,PASSED
+ housing_all.csv,-mss 3, 0.200, 0.984, 0.671, 0.658,-0.013, 0.509,PASSED
+ housing_all.csv,-mss 8, 0.200, 0.946, 0.696, 0.709, 0.013, 0.510,PASSED
+ housing_all.csv,-mss 3, 0.300, 0.975, 0.655, 0.655, 0.000, 0.372,PASSED
+ housing_all.csv,-mss 8, 0.300, 0.942, 0.689, 0.681,-0.008, 0.370,PASSED
+ housing_all.csv,-mss 3, 0.400, 0.979, 0.665, 0.684, 0.019, 0.277,PASSED
+ housing_all.csv,-mss 8, 0.400, 0.928, 0.690, 0.709, 0.019, 0.273,PASSED
+ housing_all.csv,-mss 3, 0.500, 0.970, 0.660, 0.680, 0.020, 0.206,PASSED
+ housing_all.csv,-mss 8, 0.500, 0.919, 0.645, 0.695, 0.051, 0.259,PASSED
+   wines_all.csv,-mss 3, 0.000, 0.955, 0.955, 0.878,-0.076, 6.896,PASSED
+   wines_all.csv,-mss 8, 0.000, 0.899, 0.899, 0.761,-0.137, 6.864,PASSED
+   wines_all.csv,-mss 3, 0.100, 0.957, 0.583, 0.565,-0.017, 5.333,PASSED
+   wines_all.csv,-mss 8, 0.100, 0.882, 0.539, 0.496,-0.043, 5.323,PASSED
+   wines_all.csv,-mss 3, 0.200, 0.955, 0.528, 0.507,-0.022, 4.225,PASSED
+   wines_all.csv,-mss 8, 0.200, 0.887, 0.533, 0.576, 0.044, 4.009,PASSED
+   wines_all.csv,-mss 3, 0.300, 0.958, 0.569, 0.557,-0.012, 3.636,PASSED
+   wines_all.csv,-mss 8, 0.300, 0.895, 0.566, 0.571, 0.006, 3.604,PASSED
+   wines_all.csv,-mss 3, 0.400, 0.955, 0.520, 0.517,-0.002, 2.461,PASSED
+   wines_all.csv,-mss 8, 0.400, 0.885, 0.541, 0.531,-0.011, 2.449,PASSED
+   wines_all.csv,-mss 3, 0.500, 0.953, 0.535, 0.514,-0.021, 1.756,PASSED
+   wines_all.csv,-mss 8, 0.500, 0.898, 0.535, 0.538, 0.003, 1.800,PASSED

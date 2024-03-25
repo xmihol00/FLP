@@ -1,0 +1,25 @@
+dataset,arguments,split,train_success_rate,test_success_rate,reference_train_success_rate,reference_test_success_rate,test_difference,train_time,result
+penguins_all.csv,, 0.000, 0.997, 0.997, 0.994, 0.994,-0.003, 0.203,PASSED
+penguins_all.csv,, 0.100, 0.997, 0.971, 0.993, 1.000, 0.029, 0.182,PASSED
+penguins_all.csv,, 0.200, 0.996, 0.985, 0.992, 1.000, 0.015, 0.146,PASSED
+penguins_all.csv,, 0.300, 0.996, 0.980, 0.996, 0.980, 0.000, 0.105,PASSED
+penguins_all.csv,, 0.400, 1.000, 0.955, 0.990, 0.970, 0.015, 0.080,PASSED
+penguins_all.csv,, 0.500, 1.000, 0.910, 0.982, 0.910, 0.000, 0.050,PASSED
+    iris_all.csv,, 0.000, 1.000, 1.000, 1.000, 1.000, 0.000, 0.053,PASSED
+    iris_all.csv,, 0.100, 1.000, 1.000, 1.000, 1.000, 0.000, 0.048,PASSED
+    iris_all.csv,, 0.200, 1.000, 1.000, 1.000, 1.000, 0.000, 0.038,PASSED
+    iris_all.csv,, 0.300, 1.000, 1.000, 1.000, 1.000, 0.000, 0.030,PASSED
+    iris_all.csv,, 0.400, 1.000, 1.000, 1.000, 1.000, 0.000, 0.023,PASSED
+    iris_all.csv,, 0.500, 1.000, 1.000, 1.000, 1.000, 0.000, 0.017,PASSED
+ housing_all.csv,, 0.000, 0.987, 0.987, 0.944, 0.944,-0.043, 0.983,PASSED
+ housing_all.csv,, 0.100, 0.989, 0.675, 0.949, 0.675, 0.000, 0.668,PASSED
+ housing_all.csv,, 0.200, 0.994, 0.671, 0.940, 0.671, 0.000, 0.516,PASSED
+ housing_all.csv,, 0.300, 0.982, 0.647, 0.935, 0.672, 0.025, 0.378,PASSED
+ housing_all.csv,, 0.400, 0.987, 0.671, 0.953, 0.658,-0.013, 0.279,PASSED
+ housing_all.csv,, 0.500, 0.990, 0.670, 0.949, 0.660,-0.010, 0.209,PASSED
+   wines_all.csv,, 0.000, 0.979, 0.979, 0.918, 0.918,-0.061, 7.211,PASSED
+   wines_all.csv,, 0.100, 0.978, 0.574, 0.912, 0.513,-0.061, 6.488,PASSED
+   wines_all.csv,, 0.200, 0.970, 0.537, 0.907, 0.541, 0.004, 5.484,PASSED
+   wines_all.csv,, 0.300, 0.974, 0.560, 0.906, 0.563, 0.003, 3.524,PASSED
+   wines_all.csv,, 0.400, 0.971, 0.533, 0.905, 0.520,-0.013, 2.772,PASSED
+   wines_all.csv,, 0.500, 0.979, 0.533, 0.914, 0.524,-0.009, 2.331,PASSED

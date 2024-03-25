@@ -1,0 +1,12 @@
+dataset,arguments,split,train_success_rate,test_success_rate,reference_test_success,test_difference,train_time,result
+row_zeros.csv,,0, 0.750, 0.750, 0.500,-0.250, 0.003,PASSED
+single_class.csv,,0, 1.000, 1.000, 1.000, 0.000, 0.003,PASSED
+dominant_class.csv,,0, 0.333, 0.333, 0.333, 0.000, 0.002,PASSED
+column_zeros_single.csv,,0, 0.250, 0.250, 0.250, 0.000, 0.002,PASSED
+negative_thresholds.csv,,0, 0.889, 0.889, 0.778,-0.111, 0.003,PASSED
+column_zeros.csv,,0, 0.750, 0.750, 0.500,-0.250, 0.002,PASSED
+single_sample.csv,,0, 1.000, 1.000, 1.000, 0.000, 0.002,PASSED
+same_row_different_class.csv,,0, 0.200, 0.200, 0.200, 0.000, 0.002,PASSED
+same_row_single_class.csv,,0, 1.000, 1.000, 1.000, 0.000, 0.002,PASSED
+row_zeros_single.csv,,0, 1.000, 1.000, 1.000, 0.000, 0.002,PASSED
+negative_positive_thresholds.csv,,0, 1.000, 1.000, 0.778,-0.222, 0.003,PASSED

@@ -13,9 +13,9 @@ import os
 
 for file in glob("edge_datasets/*.csv"):
     base_name = os.path.basename(file)
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, header=None)
     df = df.iloc[:, :-1]
-    values_file = f"values/{base_name}"
+    values_file = f"edge_values/{base_name}"
     df.to_csv(values_file, index=False, header=False)
     os.system(f"./flp-fun -2 {file} > edge_trained/{base_name}")
     # generate a reference classification output for each dataset
