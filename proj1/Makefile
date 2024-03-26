@@ -2,10 +2,12 @@ CC=ghc
 CFLAGS=-Wall -O3 #-Wextra
 SRC=*.hs
 
-.PHONY: all clean pack
+.PHONY: all clean pack flp-ref
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o flp-fun
+
+flp-ref:
 	$(CC) $(CFLAGS) $(SRC) -o flp-ref
 
 clean:

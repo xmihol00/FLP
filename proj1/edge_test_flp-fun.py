@@ -98,7 +98,7 @@ if __name__ == "__main__":
                         df_train = df.copy()
                         df_test = df.copy()
                     
-                    if split > 0 and len(df_test) <= 15: # skip small test sets when splitting, small difference can cause big error
+                    if split > 0 and len(df_test) <= 5: # skip small test sets when splitting, small difference can cause big error
                         continue
 
                     # save the training split to train a decision tree

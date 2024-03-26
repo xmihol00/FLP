@@ -5,4 +5,4 @@ Success rate:   100.00 %
 Failed rate:    0.00 %
 Parsing failed: 0/11
 Parsing passed: 11/11
-Results saved to training_tests_result.csv
+Results saved to edge_training_tests_result.csv
