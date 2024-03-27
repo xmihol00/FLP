@@ -1,17 +1,13 @@
 CC=swipl
 CFLAGS=-g -Wall
 
-SRC = *.pl
+SRC=*.pl
+TARGET=flp23-log
 
 .PHONY: all clean
 
-TARGET = flp23-log
+all:
+	$(CC) $(CFLAGS) -o $(TARGET) -c $(SRC)
 
-all: $(TARGET)
-
-$(TARGET): $(SRC)
-    $(CC) $(CFLAGS) -o $(TARGET) -c $(SRC)
-
-# Clean rule
 clean:
-    rm -f $(TARGET) *.o
+	rm -f $(TARGET) *.o
