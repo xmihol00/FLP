@@ -1,6 +1,6 @@
 CC=ghc
 CFLAGS=-Wall -O3 #-Wextra
-SRC=*.hs
+SRC=parsing.hs tree.hs main.hs
 
 .PHONY: all clean pack flp-ref
 
