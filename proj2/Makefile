@@ -1,9 +1,9 @@
 CC=swipl
 CFLAGS=
 
-SRC=hamilton_circle.pl input2.pl
+SRC=hamilton_cycle.pl input2.pl
 TARGET=flp23-log
-MAIN=find_hamilton_circle
+MAIN=main
 
 .PHONY: all clean
 
