@@ -9,7 +9,7 @@ student_grade(eve, 95).
 create_tuples(N, Lists, Tuples) :- maplist({N}/[List, Tuple]>>(nth0(N, List, Elem), Tuple = (Elem, List)), Lists, Tuples).
 
 create_lists(L) :- L = [[a,1,u],[b,2,v],[c,1,x],[d,2,z],[e,3,zz]].
-create_list(L) :- L = [1, 2, 3, 4].
+create_list(L) :- L = [1, 2, 3, 4, 5].
 
 gps(G) :- create_lists(L), create_tuples(1, L, Tups), group_by(A, T, member((A, T), Tups), G).
 
@@ -24,12 +24,14 @@ flatten([H|T], Flat) :- flatten(T, FlatT), append(H, FlatT, Flat).
 
 make_permutations(UniquePerms) :- 
     create_list(List), 
-    [Head|Tail] = List,
+    [Head1, Head2 | Tail] = List,
     length(Tail, Len),
     Half is (Len+1) // 2,
     findall(P, permutation(Tail, P), Perms), 
-    maplist({Half, Head}/[L, Inserted]>>(findall(Ys, insertUntil(Head, Half, L, Ys), Inserted)), Perms, Lists),
-    flatten(Lists, UniquePerms).
+    maplist({Half, Head2}/[L, Inserted]>>(findall(Ys, insertUntil(Head2, Half, L, Ys), Inserted)), Perms, Lists),
+    flatten(Lists, FlattenLists),
+    writeln(FlattenLists),
+    maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UniquePerms).
 
 unique_perms() :- make_permutations(A), writeln(A), length(A, L), writeln(L).
 
