@@ -1,5 +1,5 @@
 
-main :- parse_input(), hamilton_cycles(Cycles), writeln(Cycles), print_cycles(Cycles).
+main :- set_prolog_flag(stack_limit, 4_294_967_296), parse_input(), hamilton_cycles(Cycles), writeln(Cycles), print_cycles(Cycles).
 
 parse_line([A, ' ', B], A, B).
 parse_line(_, _, _) :- fail.
