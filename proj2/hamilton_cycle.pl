@@ -26,16 +26,19 @@ is_cycle([A, B | T], X) :- edge(A, B), is_cycle([B | T], X).
 is_cycle([A], X) :- edge(A, X).
 
 remove_duplicates(AllCycles, DedupCycles) :- 
-    maplist([[_|Rest], Rest]>>true, AllCycles, DedupCycles),
-    inner_list_length(DedupCycles, L),
+    maplist([[_|Rest], Rest]>>true, AllCycles, Tails),
+    [[HH|_]|_] = AllCycles,
+    inner_list_length(Tails, L),
     (
         L /\ 1 =:= 1 -> 
-            writeln("Odd"); 
+            M is L // 2, writeln(Tails), 
+                create_tuples(M, Tails, Tups), 
+                findall(Group, group_by(Key, Value, member((Key, Value), Tups), Group), Groups), 
+                maplist([[H|_], H]>>true, Groups, XX),
+                maplist({HH}/[[U | T], [HH, U | T]]>>true, XX, DedupCycles);
             writeln("Even")
-    ),
-    Middle is L // 2,
-    writeln(Middle).
+    ).
 
-// TODO group by
+create_tuples(N, Lists, Tuples) :- maplist({N}/[List, Tuple]>>(nth0(N, List, Elem), Tuple = (Elem, List)), Lists, Tuples).
 
-inner_list_length([A|T], L) :- length(A, L).
+inner_list_length([A|_], L) :- length(A, L).
