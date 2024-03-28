@@ -9,16 +9,32 @@ student_grade(eve, 95).
 create_tuples(N, Lists, Tuples) :- maplist({N}/[List, Tuple]>>(nth0(N, List, Elem), Tuple = (Elem, List)), Lists, Tuples).
 
 create_lists(L) :- L = [[a,1,u],[b,2,v],[c,1,x],[d,2,z],[e,3,zz]].
-create_list(L) :- L = [2, 3, 4, 5].
+create_list(L) :- L = [1, 2, 3, 4].
 
 gps(G) :- create_lists(L), create_tuples(1, L, Tups), group_by(A, T, member((A, T), Tups), G).
 
-unique_perms(Perm) :- create_list(L), findall(P, permutation(L, P), Perm). 
+insertUntil(Element, N, Xs, Ys) :-
+    append(Start, End, Xs),
+    length(Start, M),
+    N > M,
+    append(Start, [Element|End], Ys).
 
-insertAt(E,N,Xs,Ys) :-
-   same_length([E|Xs],Ys),
-   append(Before,Xs0,Xs),
-   length(Before,N),
-   append(Before,[E|Xs0],Ys).
+flatten([], []).
+flatten([H|T], Flat) :- flatten(T, FlatT), append(H, FlatT, Flat).
 
-ins(Lists) :- maplist([Idx, List]>>(insertAt(1, Idx, [a,b,c,d,e], List)), [0, 1, 2], Lists).
+make_permutations(UniquePerms) :- 
+    create_list(List), 
+    [Head|Tail] = List,
+    length(Tail, Len),
+    Half is (Len+1) // 2,
+    findall(P, permutation(Tail, P), Perms), 
+    maplist({Half, Head}/[L, Inserted]>>(findall(Ys, insertUntil(Head, Half, L, Ys), Inserted)), Perms, Lists),
+    flatten(Lists, UniquePerms).
+
+unique_perms() :- make_permutations(A), writeln(A), length(A, L), writeln(L).
+
+ /*   
+    ins(Lists) :- maplist([Idx, List]>>(insertAt(1, Idx, [a,b,c,d,e], List)), [0, 1, 2], Lists). 
+    findall(Ys, insertUntil(1,2,[a,b,c,d,e],Ys), Lists)
+    maplist([L, Inserted]>>(findall(Ys, insertUntil(6, 2, L, Ys), Inserted)), [[a,1,u],[b,2,v]], Lists).
+ */
