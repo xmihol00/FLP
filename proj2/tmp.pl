@@ -14,3 +14,11 @@ create_list(L) :- L = [2, 3, 4, 5].
 gps(G) :- create_lists(L), create_tuples(1, L, Tups), group_by(A, T, member((A, T), Tups), G).
 
 unique_perms(Perm) :- create_list(L), findall(P, permutation(L, P), Perm). 
+
+insertAt(E,N,Xs,Ys) :-
+   same_length([E|Xs],Ys),
+   append(Before,Xs0,Xs),
+   length(Before,N),
+   append(Before,[E|Xs0],Ys).
+
+ins(Lists) :- maplist([Idx, List]>>(insertAt(1, Idx, [a,b,c,d,e], List)), [0, 1, 2], Lists).
