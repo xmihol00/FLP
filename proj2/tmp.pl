@@ -24,14 +24,17 @@ flatten([H|T], Flat) :- flatten(T, FlatT), append(H, FlatT, Flat).
 
 make_permutations(UniquePerms) :- 
     create_list(List), 
-    [Head1, Head2 | Tail] = List,
-    length(Tail, Len),
-    Half is (Len+1) // 2,
-    findall(P, permutation(Tail, P), Perms), 
-    maplist({Half, Head2}/[L, Inserted]>>(findall(Ys, insertUntil(Head2, Half, L, Ys), Inserted)), Perms, Lists),
-    flatten(Lists, FlattenLists),
-    writeln(FlattenLists),
-    maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UniquePerms).
+    length(Tail, LenT),
+    Len /\ 1 =:= 1 -> 
+        [Head1, Head2 | Tail] = List,
+            length(Tail, LenT),
+            Half is (LenT+1) // 2,
+            findall(P, permutation(Tail, P), Perms), 
+            maplist({Half, Head2}/[L, Inserted]>>(findall(Ys, insertUntil(Head2, Half, L, Ys), Inserted)), Perms, Lists),
+            flatten(Lists, FlattenLists),
+            writeln(FlattenLists),
+            maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UniquePerms);
+        writeln(List), UniquePerms=List.
 
 unique_perms() :- make_permutations(A), writeln(A), length(A, L), writeln(L).
 
