@@ -53,3 +53,8 @@ unique_perms() :- make_permutations(A), writeln(A), length(A, L), writeln(L).
     [[3,4], [4,3]] [[2,3,4], [3,2,4], [2,4,3], [4,2,3]
     [[1,2,3,4],[1,3,2,4],[1,4,3,2]]
  */
+
+rotate_list([], _, []).
+rotate_list(List, Pivot, Rotated) :-
+    append(Left, [Pivot|Right], List),
+    append([Pivot|Right], Left, Rotated).

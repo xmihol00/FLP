@@ -9,5 +9,6 @@ B D
 
 solution: A-B B-C C-D D-E E-A
           A-D D-E E-C C-B B-A
-          A-D D-B B-C C-E E-A
+          A-B B-D D-C C-E E-A
           A-B B-C C-E E-D D-A
+ 

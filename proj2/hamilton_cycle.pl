@@ -1,5 +1,5 @@
 
-main :- parse_input(), hamilton_cycles(AC), writeln(AC).
+main :- parse_input(), hamilton_cycles(Cycles), writeln(Cycles), print_cycles(Cycles).
 
 parse_line([A, ' ', B], A, B).
 parse_line(_, _, _) :- fail.
@@ -37,15 +37,17 @@ flatten([H|T], Flat) :- flatten(T, FlatT), append(H, FlatT, Flat).
 make_permutations(UniquePerms) :- 
     all_nodes(List), 
     length(List, Len),
+    sort(List, SortedList),
+    [Head | _] = SortedList,
     (
         Len /\ 1 =:= 1 -> 
-            [Head1, Head2 | Tail] = List,
+            [Head1, Head2 | Tail] = SortedList,
                 Half is (Len) // 2,
                 findall(P, permutation(Tail, P), Perms), 
                 maplist({Half, Head2}/[L, Inserted]>>(findall(Ys, insertUntil(Head2, Half, L, Ys), Inserted)), Perms, Lists),
                 flatten(Lists, FlattenLists),
-                maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UniquePerms);
-            [Head1, Head2, Head3 | Tail] = List,
+                maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UnrotatedUniquePerms);
+            [Head1, Head2, Head3 | Tail] = SortedList,
                 Half is (Len-1) // 2,
                 findall(P, permutation(Tail, P), Perms), 
                 maplist({Half, Head3}/[L, Inserted]>>(findall(Ys, insertUntil(Head3, Half, L, Ys), Inserted)), Perms, Lists),
@@ -53,11 +55,22 @@ make_permutations(UniquePerms) :-
                 HalfPlus is Len-1,
                 maplist({Head2}/[[H|T], Concatenated]>>(Concatenated=[Head2, H | T]), FlattenLists, MappedLists),
                 maplist({HalfPlus, Head1}/[L, Inserted]>>(findall(Ys, insertUntil(Head1, HalfPlus, L, Ys), Inserted)), MappedLists, InsertedAgain),
-                flatten(InsertedAgain, UniquePerms)
-    ).
+                flatten(InsertedAgain, UnrotatedUniquePerms)
+    ), maplist({Head}/[L, O]>>(rotate_list(L, Head, O)), UnrotatedUniquePerms, UniquePerms).
 
 create_tuples(N, Lists, Tuples) :- maplist({N}/[List, Tuple]>>(nth0(N, List, Elem), Tuple = (Elem, List)), Lists, Tuples).
 
 inner_list_length([A|_], L) :- length(A, L).
 
-min_list
+rotate_list([], _, []).
+rotate_list(List, Pivot, Rotated) :-
+    append(Left, [Pivot|Right], List),
+    append([Pivot|Right], Left, Rotated).
+
+print_cycles([]).
+print_cycles([H|T]) :- print_cycle(H), print_cycles(T).
+
+print_cycle([]).
+print_cycle([H|T]) :- print_cycles([H|T], H).
+print_cycles([H1, H2 | T], F) :- write(H1-H2), write(' '), print_cycles([H2 | T], F).
+print_cycles([H], F) :- writeln(H-F).

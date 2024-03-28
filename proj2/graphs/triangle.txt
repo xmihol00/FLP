@@ -1,0 +1,8 @@
+A B
+B C
+C B
+B A
+C A
+A C
+
+solution: 
