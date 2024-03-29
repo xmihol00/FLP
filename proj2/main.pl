@@ -57,20 +57,21 @@ insertUntil(Element, N, Xs, Ys) :-
     N > M,
     append(Start, [Element|End], Ys).
 
-hamilton_cycle_odd(Nodes, Cycle) :- 
+hamilton_cycle_odd(Nodes, Len, Cycle) :- 
+    HalfLen is Len // 2,
     [Head1, Head2 | Tail]=Nodes, 
     permutation(Tail, P), 
-    insertUntil(Head2, 2, P, Inserted), 
+    insertUntil(Head2, HalfLen, P, Inserted), 
     Full=[Head1|Inserted], 
     is_cycle(Full), 
     Cycle=Full.
 
-hamilton_cycle_even(Nodes, Cycle) :- 
+hamilton_cycle_even(Nodes, Len, Cycle) :- 
     [Head1, Head2, Head3 | Tail] = Nodes,
-    length(Nodes, Len),
     OddLen is Len-1,
+    HalfLen is (Len - 1) // 2,
     permutation(Tail, P), 
-    insertUntil(Head3, 2, P, Inserted), 
+    insertUntil(Head3, HalfLen, P, Inserted), 
     Partial=[Head1|Inserted], 
     insertUntil(Head2, OddLen, Partial, Full),
     is_cycle(Full), 
@@ -112,8 +113,8 @@ find_cycles_via_nodes(Cycles) :-
             hamilton_cycle_small(SortedNodes, UnrotatedCycles);
             (
                 NodesLen /\ 1 =:= 1 -> 
-                    findall(C, hamilton_cycle_odd(SortedNodes, C), UnrotatedCycles);
-                    findall(C, hamilton_cycle_even(SortedNodes, C), UnrotatedCycles)
+                    findall(C, hamilton_cycle_odd(SortedNodes, NodesLen, C), UnrotatedCycles);
+                    findall(C, hamilton_cycle_even(SortedNodes, NodesLen, C), UnrotatedCycles)
             )
     ),
     [Head | _] = SortedNodes,
