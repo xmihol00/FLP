@@ -50,7 +50,7 @@ is_cycle([A, B | T], X) :- edge(A, B), is_cycle([B | T], X).
 is_cycle([A], X) :- edge(A, X).
 
 main :- 
-    parse_input(), 
+    parse_input(),
     all_nodes(Nodes), 
     length(Nodes, NodesLen),
     sort(Nodes, SortedNodes),
