@@ -1,0 +1,3 @@
+A B
+
+solution: A-B B-A

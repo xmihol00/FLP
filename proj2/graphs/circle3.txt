@@ -5,4 +5,4 @@ B A
 C A
 A C
 
-solution: 
+solution: A-B B-C C-A

@@ -1,17 +1,15 @@
-student_grade(alice, 90).
-student_grade(bob, 85).
-student_grade(charlie, 90).
-student_grade(diana, 85).
-student_grade(eve, 95).
+parse_input :- read_line(L, C), 
+        ( 
+            C == end_of_file;
+	        parse_line(L, A, B), assert(edge(A, B)), assert(edge(B, A)), assert(node(A)), assert(node(B)), parse_input();
+            parse_input()
+	    ).
 
+parse_line([A, ' ', B], A, B).
+parse_line(_, _, _) :- fail.
 
-
-create_tuples(N, Lists, Tuples) :- maplist({N}/[List, Tuple]>>(nth0(N, List, Elem), Tuple = (Elem, List)), Lists, Tuples).
-
-create_lists(L) :- L = [[a,1,u],[b,2,v],[c,1,x],[d,2,z],[e,3,zz]].
-create_list(L) :- L = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].
-
-gps(G) :- create_lists(L), create_tuples(1, L, Tups), group_by(A, T, member((A, T), Tups), G).
+all_nodes(Nodes) :- setof(X, node(X), Nodes).
+all_edges(Edges) :- setof([X, Y], edge(X, Y), Edges).
 
 insertUntil(Element, N, Xs, Ys) :-
     append(Start, End, Xs),
@@ -19,42 +17,66 @@ insertUntil(Element, N, Xs, Ys) :-
     N > M,
     append(Start, [Element|End], Ys).
 
-flatten([], []).
-flatten([H|T], Flat) :- flatten(T, FlatT), append(H, FlatT, Flat).
+hamilton_cycle_odd(Nodes, Cycle) :- 
+    [Head1, Head2 | Tail]=Nodes, 
+    permutation(Tail, P), 
+    insertUntil(Head2, 2, P, Inserted), 
+    Full=[Head1|Inserted], 
+    is_cycle(Full), 
+    Cycle=Full.
 
-make_permutations(UniquePerms) :- 
-    create_list(List), 
-    length(List, Len),
+hamilton_cycle_even(Nodes, Cycle) :- 
+    [Head1, Head2, Head3 | Tail] = Nodes,
+    length(Nodes, Len),
+    OddLen is Len-1,
+    permutation(Tail, P), 
+    insertUntil(Head3, 2, P, Inserted), 
+    Partial=[Head1|Inserted], 
+    insertUntil(Head2, OddLen, Partial, Full),
+    is_cycle(Full), 
+    Cycle=Full.
+
+hamilton_cycle_small(Nodes, Cycles) :- 
+    length(Nodes, Len),
     (
-        Len /\ 1 =:= 1 -> 
-            [Head1, Head2 | Tail] = List,
-                Half is (Len) // 2,
-                findall(P, permutation(Tail, P), Perms), 
-                maplist({Half, Head2}/[L, Inserted]>>(findall(Ys, insertUntil(Head2, Half, L, Ys), Inserted)), Perms, Lists),
-                flatten(Lists, FlattenLists),
-                maplist({Head1}/[[H|T], Concatenated]>>(Concatenated=[Head1, H | T]), FlattenLists, UniquePerms);
-            [Head1, Head2, Head3 | Tail] = List,
-                Half is (Len-1) // 2,
-                findall(P, permutation(Tail, P), Perms), 
-                maplist({Half, Head3}/[L, Inserted]>>(findall(Ys, insertUntil(Head3, Half, L, Ys), Inserted)), Perms, Lists),
-                flatten(Lists, FlattenLists),
-                HalfPlus is Len-1,
-                maplist({Head2}/[[H|T], Concatenated]>>(Concatenated=[Head2, H | T]), FlattenLists, MappedLists),
-                maplist({HalfPlus, Head1}/[L, Inserted]>>(findall(Ys, insertUntil(Head1, HalfPlus, L, Ys), Inserted)), MappedLists, InsertedAgain),
-                flatten(InsertedAgain, UniquePerms)
+        (Len == 1, [H1] = Nodes, edge(H1, H1), Cycles = [Nodes]);
+        (Len == 3, [H1, H2, H3] = Nodes, edge(H1, H2), edge(H2, H3), edge(H3, H1), Cycles = [Nodes]);
+        (Len == 2, [H1, H2] = Nodes, edge(H1, H2), edge(H2, H1), Cycles = [Nodes]);
+        Cycles = []
     ).
 
-unique_perms() :- make_permutations(A), writeln(A), length(A, L), writeln(L).
+is_cycle([A | T]) :- is_cycle([A | T], A).
+is_cycle([A, B | T], X) :- edge(A, B), is_cycle([B | T], X). 
+is_cycle([A], X) :- edge(A, X).
 
- /*   
-    ins(Lists) :- maplist([Idx, List]>>(insertAt(1, Idx, [a,b,c,d,e], List)), [0, 1, 2], Lists). 
-    findall(Ys, insertUntil(1,2,[a,b,c,d,e],Ys), Lists)
-    maplist([L, Inserted]>>(findall(Ys, insertUntil(6, 2, L, Ys), Inserted)), [[a,1,u],[b,2,v]], Lists).
-    [[3,4], [4,3]] [[2,3,4], [3,2,4], [2,4,3], [4,2,3]
-    [[1,2,3,4],[1,3,2,4],[1,4,3,2]]
- */
+main :- 
+    parse_input(), 
+    all_nodes(Nodes), 
+    length(Nodes, NodesLen),
+    sort(Nodes, SortedNodes),
+    (
+        NodesLen =< 3 ->
+            hamilton_cycle_small(SortedNodes, UnrotatedCycles);
+            (
+                NodesLen /\ 1 =:= 1 -> 
+                    findall(C, hamilton_cycle_odd(SortedNodes, C), UnrotatedCycles);
+                    findall(C, hamilton_cycle_even(SortedNodes, C), UnrotatedCycles)
+            )
+    ),
+    [Head | _] = SortedNodes,
+    maplist({Head}/[L, O]>>(rotate_list(L, Head, O)), UnrotatedCycles, Cycles),
+    writeln(Cycles),
+    print_cycles(Cycles).
 
 rotate_list([], _, []).
 rotate_list(List, Pivot, Rotated) :-
     append(Left, [Pivot|Right], List),
     append([Pivot|Right], Left, Rotated).
+
+print_cycles([]).
+print_cycles([H|T]) :- print_cycle(H), print_cycles(T).
+
+print_cycle([]).
+print_cycle([H|T]) :- print_cycles([H|T], H).
+print_cycles([H1, H2 | T], F) :- write(H1-H2), write(' '), print_cycles([H2 | T], F).
+print_cycles([H], F) :- writeln(H-F).
