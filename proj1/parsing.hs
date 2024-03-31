@@ -23,7 +23,11 @@ module Parsing (
     doubleOrLineError,
     parseValues
 ) where
+
+-- isSpace
 import qualified Data.Char as C
+
+-- functions for integer and floating point values parsing
 import qualified Data.Text.IO as T
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL

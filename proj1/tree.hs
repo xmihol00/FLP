@@ -25,8 +25,13 @@ module Tree (
     trainTree
 ) where
 
+-- isSpace
 import qualified Data.Char as C
+
+-- nub
 import qualified Data.List as L
+
+-- my functions imported directly
 import Parsing (
     takeRestOfLine,
     skipWhiteSpaces,

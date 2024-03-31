@@ -12,6 +12,10 @@ make flp-ref
 rm test_log.txt
 mkdir -p test_results
 cd test_results
+mkdir -p edge_cases
+cd edge_cases
+python3 ../../edge_test_flp-fun.py | tee -a ../../test_log.txt
+cd ..
 mkdir -p default
 cd default
 python3 ../../test_flp-fun.py | tee -a ../../test_log.txt

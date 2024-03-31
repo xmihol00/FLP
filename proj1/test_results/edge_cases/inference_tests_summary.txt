@@ -1,0 +1,5 @@
+All tests PASSED.
+Passed:       14/14
+Failed:       0/14
+Success rate: 100.00%
+Failed rate:  0.00%

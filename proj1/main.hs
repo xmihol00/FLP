@@ -8,10 +8,14 @@
 
 module Main (main) where
 
+-- getArgs
 import qualified System.Environment as E
+
+-- my functions imported directly
 import Parsing (parseValues, utf8Print, integerOrError)
 import Tree (BinaryTree, traverseTreeMultiple, loadTrainCSV, trainTree, trainTreeBasic)
 
+-- task 1
 mainInference :: [String] -> IO ()
 mainInference [treeFile, valuesFile] = do
     treeInput <- readFile treeFile
@@ -21,6 +25,7 @@ mainInference [treeFile, valuesFile] = do
     utf8Print $ traverseTreeMultiple tree values
 mainInference _ = error "Wrong number of parameters."
 
+-- task 2
 mainTraining :: [String] -> IO ()
 mainTraining [trainingFile] = do
     trainingInput <- readFile trainingFile
@@ -29,6 +34,7 @@ mainTraining [trainingFile] = do
     utf8Print $ show tree
 mainTraining _ = error "Wrong number of parameters."
 
+-- task 2 with extensions
 mainTrainingArgs :: [String] -> IO ()
 mainTrainingArgs [trainingFile, maxDepthStr, minSamplesSplitStr, minSamplesLeafStr] = do
     let (maxDepth, _) = integerOrError maxDepthStr (error $ "Integer expected after the '-md' parameter, got: " ++ maxDepthStr)
@@ -40,6 +46,7 @@ mainTrainingArgs [trainingFile, maxDepthStr, minSamplesSplitStr, minSamplesLeafS
     utf8Print $ show tree
 mainTrainingArgs _ = error "Wrong parameters."
 
+-- debug print of the tree on stdin to stdout
 mainEchoTree :: [String] -> IO ()
 mainEchoTree [treeFile] = do
     treeInput <- readFile treeFile
@@ -47,7 +54,7 @@ mainEchoTree [treeFile] = do
     utf8Print $ show tree
 mainEchoTree _ = error "Wrong parameters."
 
--- somewhat cumbersome parsing of command line parameters, but it works for this purpose, normally some library would be used instead
+-- parsing of command line parameters
 -- default values: maxDepth=INT_MAX, minSamplesSplit=2, minSamplesLeaf=1
 parseArgs :: [String] -> ([String] -> IO (), [String])
 parseArgs [x, "--echo_tree"] = (mainEchoTree, [x])
