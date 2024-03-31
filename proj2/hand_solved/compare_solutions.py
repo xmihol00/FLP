@@ -44,6 +44,8 @@ for solution in solutions:
 
 gt_set_of_tuples = set(tuple(solution) for solution in gt_mirrored_solutions)
 set_of_tuples = set(tuple(solution) for solution in mirrored_solutions)
+if len(mirrored_solutions) == 2 and len(mirrored_solutions[0]) == 1: # special case for solution with length 1
+    mirrored_solutions = mirrored_solutions[:1]
 set_size_vs_list_size = len(set_of_tuples) == len(mirrored_solutions) or set_of_tuples == {()}
 
 gt_diff = gt_set_of_tuples - set_of_tuples
@@ -62,10 +64,16 @@ elif not set_size_vs_list_size:
         else:
             seen.add(tuple(solution))
 else:
+    print(set_of_tuples)
+    print(gt_set_of_tuples)
     print(termcolor.colored("FAILED", "red"))
     print("Extra invalid solutions:")
     for solution in diff:
+        solution = list(solution)
+        solution.insert(0, rotate_char)
         print(solution)
     print("Missing valid solutions:")
     for solution in gt_diff:
+        solution = list(solution)
+        solution.insert(0, rotate_char)
         print(solution)

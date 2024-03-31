@@ -1,8 +1,0 @@
-A B
-B C
-C B
-B A
-C A
-A C
-
-solution: A-B B-C C-A
