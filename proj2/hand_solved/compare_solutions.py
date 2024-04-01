@@ -53,6 +53,7 @@ diff = set_of_tuples - gt_set_of_tuples
 
 if len(gt_diff) == 0 and len(diff) == 0 and set_size_vs_list_size:
     print(termcolor.colored("PASSED", "green"))
+    exit(0)
 elif not set_size_vs_list_size:
     print(termcolor.colored("FAILED", "red"))
     print("Duplicate solutions found in the output file:")
@@ -63,6 +64,7 @@ elif not set_size_vs_list_size:
             print(solution)
         else:
             seen.add(tuple(solution))
+    exit(1)
 else:
     print(set_of_tuples)
     print(gt_set_of_tuples)
@@ -77,3 +79,4 @@ else:
         solution = list(solution)
         solution.insert(0, rotate_char)
         print(solution)
+    exit(1)

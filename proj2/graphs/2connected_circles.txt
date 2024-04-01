@@ -1,9 +1,0 @@
-D C
-D E
-E F
-F D
-C A
-C B
-B A
-
-solution: None

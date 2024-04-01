@@ -4,6 +4,8 @@ C B
 A B
 B A
 D A
+A A
+D D
 
 test solution:
 A B C D

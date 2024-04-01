@@ -1,0 +1,17 @@
+A B
+B C
+C D
+D E
+E F
+F A
+A D
+B E
+
+test solution:
+A B C D E F
+A F E B C D
+
+print solution:
+A-B B-C C-D D-E E-F F-A
+A-F F-E E-B B-C C-D D-A
+          
