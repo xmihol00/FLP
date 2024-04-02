@@ -1,5 +1,5 @@
 CC=swipl
-CFLAGS=
+CFLAGS=--stack-limit=12g -G12g
 
 SRC=main.pl
 TARGET=flp23-log
