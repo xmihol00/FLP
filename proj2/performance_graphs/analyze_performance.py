@@ -35,4 +35,4 @@ for suffix in ["circle.txt", "fully_connected.txt"]:
             df.loc[filename] = [test_type, end - start, ret_message]
             df.to_csv(csv_name)
             print(f"{filename} took {end - start} seconds with {ret_message}")
-            sleep(2)
+            sleep(1)
