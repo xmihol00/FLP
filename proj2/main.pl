@@ -185,7 +185,7 @@ hamiltonian_cycle_odd(Nodes, Len, UniqueCycle) :-
     /* get the position of the node in the middle of the list */
     HalfLen is Len // 2,
     /* take out the first two nodes from the node list to break the permutation symmetry, see README.md for more detail */
-    [Head1, Head2 | Tail]=Nodes, 
+    [Head1, Head2|Tail]=Nodes, 
     /* find a permutation of the rest of the nodes */
     permutation(Tail, Permutation), 
     /* extend the permutation non-symmetrically */
@@ -209,7 +209,7 @@ hamiltonian_cycle_even(Nodes, Len, UniqueCycle) :-
     /* get the position of the node in the middle of the odd length list  */
     HalfLen is (Len - 1) // 2,
     /* take out the first three nodes from the node list to break the permutation symmetry, see README.md for more detail */
-    [Head1, Head2, Head3 | Tail] = Nodes,
+    [Head1, Head2, Head3|Tail] = Nodes,
     /* find a permutation of the rest of the nodes */
     permutation(Tail, P), 
     /* extend the permutation non-symmetrically */
@@ -244,18 +244,26 @@ hamiltonian_cycle_small(Nodes, UniqueCycles) :-
  * @param +Nodes The list of nodes to check.
  */
 /* the main/starting predicate */
-is_cycle([A | T]) :- is_cycle([A | T], A).
+is_cycle([First|Rest]) :- is_cycle([First|Rest], First).
 /* the recursive predicate (only if the expected path exists) */
-is_cycle([A, B | T], X) :- edge(A, B), is_cycle([B | T], X). 
+is_cycle([First, Second|Rest], Initial) :- edge(First, Second), is_cycle([Second|Rest], Initial). 
 /* the end of recursion predicate, i.e. cycle exists */
-is_cycle([A], X) :- edge(A, X).
+is_cycle([Last], Initial) :- edge(Last, Initial).
 
-factorial(N, F) :- 
-    N > 0, 
-    Next is N - 1, 
-    factorial(Next, Prev), 
-    F is N * Prev.
+/**
+ * @brief Calculates the factorial of a given number.
+ * @param +Number The number to calculate the factorial of.
+ * @param -Factorial The factorial of the given number.
+ */
+/* recursive case */
+factorial(Number, Factorial) :- 
+    Number > 0, 
+    Next is Number - 1, 
+    factorial(Next, Previous), 
+    Factorial is Number * Previous.
+/* base case */
 factorial(0, 1).
+/* return 0 instead of fail, when negative input is passed */
 factorial(Negative, 0) :- Negative < 0.
 
 power(X, N, Y) :- 
@@ -287,19 +295,19 @@ find_cycles_via_edges(Cycles) :-
     [Head | _] = SortedNodes,
     findall(C, unique_hamiltonian_cycle(Head, C), Cycles).
 
-print_cycles([]).
-print_cycles([H|T]) :- print_cycle(H), print_cycles(T).
-
 print_cycle([]).
-print_cycle([H|T]) :- print_cycles([H|T], H).
-print_cycles([H1, H2 | T], F) :- write(H1-H2), write(' '), print_cycles([H2 | T], F).
-print_cycles([H], F) :- writeln(H-F).
+print_cycle([Head|Tail]) :- print_cycles([Head|Tail], Head).
+
+print_cycles([]).
+print_cycles([Head|Tail]) :- print_cycle(Head), print_cycles(Tail).
+print_cycles([Head1, Head2 | Tail], First) :- write(Head1-Head2), write(' '), print_cycles([Head2 | Tail], First).
+print_cycles([Last], First) :- writeln(Last-First).
+
+test_print_cycle([Head|Tail]) :- write(Head), write(' '), test_print_cycle(Tail).
+test_print_cycle([]) :- nl.
 
 test_print_cycles([]).
-test_print_cycles([H|T]) :- test_print_cycle(H), test_print_cycles(T).
-
-test_print_cycle([H|T]) :- write(H), write(' '), test_print_cycle(T).
-test_print_cycle([]) :- nl.
+test_print_cycles([Head|Tail]) :- test_print_cycle(Head), test_print_cycles(Tail).
 
 main1(Cycles) :-
     parse_input(),
