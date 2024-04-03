@@ -1,5 +1,6 @@
 # FLP-FUN (1st project to Functional and Logic Programming course at FIT, BUT)
 ```
+  case: Decision tree inference and training implemented in Haskell.
 author: David Mihola (xmihol00)
  email: xmihol00@stud.fit.vutbr.cz
   date: 31. 3. 2024

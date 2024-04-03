@@ -375,7 +375,7 @@ main(Cycles) :-
     /* get the number of nodes and edges */
     length(Nodes, NodesLength),
     length(Edges, EdgesLength),
-    /* compute the time complexity of the node based search */
+    /* compute the time complexity of the node based search (use stricter number of nodes) */
     factorial(NodesLength, Factorial),
     /* compute the average number of edges per node */
     EdgesPerNode is EdgesLength / NodesLength,
