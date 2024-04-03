@@ -19,7 +19,14 @@ author: David Mihola (xmihol00)
 There are two solutions for the problem implemented. Both solutions use the Prolog database for storing nodes and edges, which should ensure their O(1) lookup, considering that the database is a reasonably balanced hash table.
 
 ### Solution using edges as the search space
-This is the common solution. Paths without repeating nodes starting and finishing in a given node are search and then deduplicated to ensure uniqueness of each solution. The time complexity, considering that existence of an edge can be evaluated in O(1), of this algorithm is $O(V^E)$, where $V$ is the number of nodes in a graph and $E$ is the average branching factor.
+This is the common solution, where paths without repeating nodes starting and finishing in a given node are searched and then deduplicated to ensure uniqueness of each solution. The time complexity, considering that existence of an edge can be evaluated in O(1), of this algorithm is $O(V^E)*O(E)$, where $V$ is the number of nodes in a graph, $E$ is the average branching factor, $O(V^E)$ is the time required for finding a solution and is the time required for deduplication $O(E)$.
 
 ### Solution using nodes as the search space
-This is a less common solution.
+This is a less common solution. First, unique permutations of nodes are generated. Unique in this case means that no two permutations represent the same potential cycle, ensured by the following:
+* for graphs with odd number of nodes:
+  1. regular permutations are computed on the set of nodes with two nodes excluded,
+  2. the mirror, i.e. sequences which are the same as their reversals, symetrii is broken by extending the permutations with sequences produced with inserting one of the excluded nodes to each of the generated permutations only up to the half of the sequence length.
+  3. the rotational, i.e sequences which are the same when correctly rotated, symetrii is broken by prepending the second excluded node to the generated permutations.  
+* for graphs with even number of nodes:
+  1. regular permutations are computed on the set of nodes with three nodes excluded,
+  2. same as step 2 in graphs with odd numbers
