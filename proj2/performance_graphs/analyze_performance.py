@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 for suffix in ["circle.txt", "fully_connected.txt", "2D_mesh.txt", "2D_wrap-around_mesh.txt"]:
     test_type = suffix.split(".")[0]
-    for implementation in ["nodes", "edges", "combined1", "combined2"]:
+    for implementation in ["nodes", "edges", "combined"]:
         os.system(f"cd .. && make test_{implementation}")
         csv_name = f"{implementation}_{test_type}_results.csv"
         if os.path.exists(csv_name) and not args.rerun_all_tests:

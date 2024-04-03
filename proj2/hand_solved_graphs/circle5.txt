@@ -10,4 +10,4 @@ test solution:
 A B C D E
 
 print solution:
-A-B D-E E-A B-C C-D
+A-B D-E A-E B-C C-D

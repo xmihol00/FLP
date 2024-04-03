@@ -100,9 +100,9 @@ all_edges(Edges) :- setof([X, Y], edge(X, Y), Edges).
  */
 rotate_list(List, Pivot, Rotated) :-
     /* split the list by the pivot */
-    append(Left, [Pivot|Right], List),
+    append(Left, [Pivot | Right], List),
     /* append the left part to the right part in reverse order */
-    append([Pivot|Right], Left, Rotated).
+    append([Pivot | Right], Left, Rotated).
 rotate_list([], _, []).
 
 /**
@@ -121,7 +121,7 @@ insertUntil(Element, N, Xs, Ys) :-
     /* check if the length is smaller than the given index */
     N > M,
     /* insert the given element between the first and second part of the list */
-    append(Start, [Element|End], Ys).
+    append(Start, [Element | End], Ys).
 
 /** 
  * @brief Finds a hamiltonian cycle starting at a given node using edges as the space of search.
@@ -133,21 +133,21 @@ hamiltonian_cycle(Start, Cycle) :-
     /* retreive all nodes from the database */
     all_nodes(Nodes),
     /* get the number of nodes */
-    length(Nodes, NodesLen),
+    length(Nodes, NodesLength),
     /* begin the recursive search */
-    hamiltonian_cycle(Start, Start, [Start], NodesLen, Cycle).
+    hamiltonian_cycle(Start, Start, [Start], NodesLength, Cycle).
 /* the recursive predicate (only if the current path can continue) */
-hamiltonian_cycle(Start, Current, Visited, CycleLen, Cycle) :-
+hamiltonian_cycle(Start, Current, Visited, CycleLength, Cycle) :-
     /* get a next node connected to the current node, all possible next nodes will be eventualy retreived, when the follwing predicates fail */
     edge(Current, Next), 
     /* check if the next node has not been visited yet */
     \+ member(Next, Visited), 
     /* add the next node to the visited nodes and continue the search */
-    hamiltonian_cycle(Start, Next, [Next | Visited], CycleLen, Cycle).
+    hamiltonian_cycle(Start, Next, [Next | Visited], CycleLength, Cycle).
 /* the end of recursion predicate, i.e. cycle found */
-hamiltonian_cycle(Start, Current, Visited, CycleLen, Cycle) :-
+hamiltonian_cycle(Start, Current, Visited, CycleLength, Cycle) :-
     /* check if the path has the required length, i.e. same as the number of nodes in the database */
-    length(Visited, CycleLen), 
+    length(Visited, CycleLength), 
     /* check if there is an edge between the last and the first node */
     edge(Current, Start),
     /* cycle found */
@@ -178,20 +178,20 @@ unique_hamiltonian_cycle(Start, UniqueCycle) :-
 /**
  * @brief Finds a unique hamiltonian cycle with each call in a graph with odd number of nodes using nodes as the space of search.
  * @param +Nodes The list of nodes to search the cycle in.
- * @param +Len The length of the list of nodes.
+ * @param +Length The length of the list of nodes.
  * @param -UniqueCycle The list of nodes representing the cycle.
  */
-hamiltonian_cycle_odd(Nodes, Len, UniqueCycle) :- 
+hamiltonian_cycle_odd(Nodes, Length, UniqueCycle) :- 
     /* get the position of the node in the middle of the list */
-    HalfLen is Len // 2,
+    HalfLength is Length // 2,
     /* take out the first two nodes from the node list to break the permutation symmetry, see README.md for more detail */
-    [Head1, Head2|Tail]=Nodes, 
+    [Head1, Head2 | Tail]=Nodes, 
     /* find a permutation of the rest of the nodes */
     permutation(Tail, Permutation), 
     /* extend the permutation non-symmetrically */
-    insertUntil(Head2, HalfLen, Permutation, Inserted), 
+    insertUntil(Head2, HalfLength, Permutation, Inserted), 
     /* append the starting node, which is the same for all potential cycles */
-    Full=[Head1|Inserted], 
+    Full=[Head1 | Inserted], 
     /* check whether the current permutation is a cycle, i.e. edges exist in between the nodes */
     is_cycle(Full), 
     /* unique cycle found */
@@ -200,24 +200,24 @@ hamiltonian_cycle_odd(Nodes, Len, UniqueCycle) :-
 /**
  * @brief Finds a unique hamiltonian cycle with each call in a graph with even number of nodes using nodes as the space of search.
  * @param +Nodes The list of nodes to search the cycle in.
- * @param +Len The length of the list of nodes.
+ * @param +Length The length of the list of nodes.
  * @param -UniqueCycle The list of nodes representing the cycle.
  */
-hamiltonian_cycle_even(Nodes, Len, UniqueCycle) :- 
+hamiltonian_cycle_even(Nodes, Length, UniqueCycle) :- 
     /* get the length of the list without one node first node, i.e. the length as if the list had odd length */
-    OddLen is Len - 1,
+    OddLength is Length - 1,
     /* get the position of the node in the middle of the odd length list  */
-    HalfLen is (Len - 1) // 2,
+    HalfLength is (Length - 1) // 2,
     /* take out the first three nodes from the node list to break the permutation symmetry, see README.md for more detail */
-    [Head1, Head2, Head3|Tail] = Nodes,
+    [Head1, Head2, Head3 | Tail] = Nodes,
     /* find a permutation of the rest of the nodes */
     permutation(Tail, P), 
     /* extend the permutation non-symmetrically */
-    insertUntil(Head3, HalfLen, P, Inserted), 
+    insertUntil(Head3, HalfLength, P, Inserted), 
     /* append the starting node, which is the same for all potential cycles */
-    Partial=[Head1|Inserted], 
+    Partial=[Head1 | Inserted], 
     /* extend the permutation non-symmetrically again */
-    insertUntil(Head2, OddLen, Partial, Full),
+    insertUntil(Head2, OddLength, Partial, Full),
     /* check whether the current permutation is a cycle, i.e. edges exist in between the nodes */
     is_cycle(Full), 
     /* unique cycle found */
@@ -229,12 +229,12 @@ hamiltonian_cycle_even(Nodes, Len, UniqueCycle) :-
  * @param -UniqueCycles The list of lists of nodes representing unique cycles.
  */
 hamiltonian_cycle_small(Nodes, UniqueCycles) :- 
-    length(Nodes, Len),
+    length(Nodes, Length),
     (
         /* switch based on the number of nodes and return found cycle */
-        (Len =:= 1, [H1] = Nodes, edge(H1, H1), UniqueCycles = [Nodes]);
-        (Len =:= 2, [H1, H2] = Nodes, edge(H1, H2), edge(H2, H1), UniqueCycles = [Nodes]);
-        (Len =:= 3, [H1, H2, H3] = Nodes, edge(H1, H2), edge(H2, H3), edge(H3, H1), UniqueCycles = [Nodes]);
+        (Length =:= 1, [H1] = Nodes, edge(H1, H1), UniqueCycles = [Nodes]);
+        (Length =:= 2, [H1, H2] = Nodes, edge(H1, H2), edge(H2, H1), UniqueCycles = [Nodes]);
+        (Length =:= 3, [H1, H2, H3] = Nodes, edge(H1, H2), edge(H2, H3), edge(H3, H1), UniqueCycles = [Nodes]);
         /* no cycle found or the graph has more than 3 nodes */
         UniqueCycles = []
     ).
@@ -244,9 +244,9 @@ hamiltonian_cycle_small(Nodes, UniqueCycles) :-
  * @param +Nodes The list of nodes to check.
  */
 /* the main/starting predicate */
-is_cycle([First|Rest]) :- is_cycle([First|Rest], First).
+is_cycle([First | Rest]) :- is_cycle([First | Rest], First).
 /* the recursive predicate (only if the expected path exists) */
-is_cycle([First, Second|Rest], Initial) :- edge(First, Second), is_cycle([Second|Rest], Initial). 
+is_cycle([First, Second | Rest], Initial) :- edge(First, Second), is_cycle([Second | Rest], Initial). 
 /* the end of recursion predicate, i.e. cycle exists */
 is_cycle([Last], Initial) :- edge(Last, Initial).
 
@@ -266,103 +266,158 @@ factorial(0, 1).
 /* return 0 instead of fail, when negative input is passed */
 factorial(Negative, 0) :- Negative < 0.
 
-power(X, N, Y) :- 
-    N > 0, 
-    Next is N - 1, 
-    power(X, Next, Prev), 
-    Y is X * Prev.
+/**
+ * @brief Calculates the power of a given base on a given exponent.
+ * @param +Base The base of the power.
+ * @param +Exponent The exponent of the power.
+ * @param -Power The power of the base on the exponent.
+ */
+/* recursive case */
+power(Base, Exponent, Power) :- 
+    Exponent > 0, 
+    Next is Exponent - 1, 
+    power(Base, Next, Previous), 
+    Power is Base * Previous.
+/* base case */
 power(_, 0, 1).
 
+/**
+ * @brief Finds all unique hamiltonian cycles in a graph using nodes as the space of search.
+ * @param -Cycles The list of lists of nodes representing cycles.
+ */
 find_cycles_via_nodes(Cycles) :-
+    /* retreive all nodes from the database */
     all_nodes(Nodes), 
-    length(Nodes, NodesLen),
+    /* get the number of nodes in the database */
+    length(Nodes, NodesLength),
+    /* sort the nodes to produce more readable output */
     sort(Nodes, SortedNodes),
     (
-        NodesLen =< 3 ->
+        NodesLength =< 3 ->
+            /* find all unique cycles in a graph with 1, 2 or 3 nodes */
             hamiltonian_cycle_small(SortedNodes, UnrotatedCycles);
+            /* find all unique cycles in a graph with more than 3 nodes */
             (
-                NodesLen /\ 1 =:= 1 -> 
-                    findall(C, hamiltonian_cycle_odd(SortedNodes, NodesLen, C), UnrotatedCycles);
-                    findall(C, hamiltonian_cycle_even(SortedNodes, NodesLen, C), UnrotatedCycles)
+                NodesLength /\ 1 =:= 1 -> 
+                    /* find all unique cycles in a graph with odd number of nodes */
+                    findall(C, hamiltonian_cycle_odd(SortedNodes, NodesLength, C), UnrotatedCycles);
+                    /* find all unique cycles in a graph with even number of nodes */
+                    findall(C, hamiltonian_cycle_even(SortedNodes, NodesLength, C), UnrotatedCycles)
             )
     ),
     [Head | _] = SortedNodes,
+    /* rotate all the results to start with the same node */
     maplist({Head}/[L, O]>>(rotate_list(L, Head, O)), UnrotatedCycles, Cycles).
 
+/**
+ * @brief Finds all unique hamiltonian cycles in a graph using edges as the space of search.
+ * @param -Cycles The list of lists of nodes representing cycles.
+ */
 find_cycles_via_edges(Cycles) :-
+    /* retreive all nodes from the database */
     all_nodes(Nodes), 
+    /* sort the nodes to produce more readable output */
     sort(Nodes, SortedNodes),
     [Head | _] = SortedNodes,
+    /* find all unique cycles in a graph and ensure they all start with the same node */
     findall(C, unique_hamiltonian_cycle(Head, C), Cycles).
 
+/**
+ * @brief Prints a hamiltonian cycle in the required format by the assignment.
+ * @param +Cycle The list of nodes representing the cycle.
+ */
 print_cycle([]).
-print_cycle([Head|Tail]) :- print_cycles([Head|Tail], Head).
+print_cycle([Head | Tail]) :- print_cycles([Head | Tail], Head).
 
+/**
+ * @brief Prints multiple hamiltonian cycles each on a separate line in the required format by the assignment.
+ * @param +Cycles The list of lists of nodes representing the cycles.
+ */
+/* main/starting predicate */
+print_cycles([Head | Tail]) :- print_cycle(Head), print_cycles(Tail).
+/* no cycles to print (base case) */
 print_cycles([]).
-print_cycles([Head|Tail]) :- print_cycle(Head), print_cycles(Tail).
+/* recursive case */
 print_cycles([Head1, Head2 | Tail], First) :- write(Head1-Head2), write(' '), print_cycles([Head2 | Tail], First).
+/* base case */
 print_cycles([Last], First) :- writeln(Last-First).
 
-test_print_cycle([Head|Tail]) :- write(Head), write(' '), test_print_cycle(Tail).
+/**
+ * @brief Prints a hamiltonian cycle in a test format.
+ * @param +Cycles The list of nodes representing the cycles.
+ */
+/* recursive case */
+test_print_cycle([Head | Tail]) :- write(Head), write(' '), test_print_cycle(Tail).
+/* base case */
 test_print_cycle([]) :- nl.
 
+/**
+ * @brief Prints multiple hamiltonian cycles each on a separate line in a test format.
+ * @param +Cycles The list of lists of nodes representing the cycles.
+ */
+/* recursive case */
+test_print_cycles([Head | Tail]) :- test_print_cycle(Head), test_print_cycles(Tail).
+/* base case */
 test_print_cycles([]).
-test_print_cycles([Head|Tail]) :- test_print_cycle(Head), test_print_cycles(Tail).
 
-main1(Cycles) :-
+/* --------------------------------------------------------------------------------
+-- main predicates to test, analyze performance and for the final submission
+-- see the Makefile and README.md for more details
+----------------------------------------------------------------------------------- */
+
+main(Cycles) :-
+    /* read the input and parse it */
     parse_input(),
-    all_nodes(Nodes), 
+    /* retreive all nodes from the database */
+    all_nodes(Nodes),
+    /* retreive all edges from the database */
     all_edges(Edges),
-    length(Nodes, NodesLen),
-    length(Edges, EdgesLen),
-    factorial(NodesLen, F),
-    EdgesPerNode is EdgesLen / NodesLen,
-    power(EdgesPerNode, NodesLen, P),
+    /* get the number of nodes and edges */
+    length(Nodes, NodesLength),
+    length(Edges, EdgesLength),
+    /* compute the time complexity of the node based search */
+    factorial(NodesLength, Factorial),
+    /* compute the average number of edges per node */
+    EdgesPerNode is EdgesLength / NodesLength,
+    /* compute the time complexity of the edge based search */
+    power(EdgesPerNode, NodesLength, Power),
     (
-        F < P -> 
+        /* choose the solution with smaller time complexity */
+        Factorial < Power -> 
             find_cycles_via_nodes(Cycles);
             find_cycles_via_edges(Cycles)
     ).
 
-main2(Cycles) :-
-    parse_input(),
-    all_nodes(Nodes), 
-    all_edges(Edges),
-    length(Nodes, NodesLen),
-    NodesLenDec is NodesLen - 1,
-    length(Edges, EdgesLen),
-    factorial(NodesLenDec, F),
-    EdgesPerNode is EdgesLen / NodesLen,
-    power(EdgesPerNode, NodesLen, P),
-    (
-        F < P -> 
-            find_cycles_via_nodes(Cycles);
-            find_cycles_via_edges(Cycles)
-    ).
-
-
+/**
+ * @brief Main predicate for the submission, called when build with 'make'.
+ */
 main_print :-
-    main1(Cycles),
+    main(Cycles),
     print_cycles(Cycles).
 
+/**
+ * @brief Main predicate for testing, called when build with 'make test'.
+ */
 main_test_print :-
-    main1(Cycles),
+    main(Cycles),
     test_print_cycles(Cycles).
 
+/* --------------------------------------------------------------------------------
+-- Main predicates for performance analysis, see README.md. 
+----------------------------------------------------------------------------------- */
+/* called when build with 'make test_nodes' */
 main_nodes_test_print :-
     parse_input(),
     find_cycles_via_nodes(Cycles),
     test_print_cycles(Cycles).
 
+/* called when build with 'make test_edges' */
 main_edges_test_print :-
     parse_input(),
     find_cycles_via_edges(Cycles),
     test_print_cycles(Cycles).
 
-main_combined1_test_print :-
-    main1(Cycles),
-    test_print_cycles(Cycles).
-
-main_combined2_test_print :-
-    main2(Cycles),
+/* called when build with 'make test_combined' */
+main_combined_test_print :-
+    main(Cycles),
     test_print_cycles(Cycles).
