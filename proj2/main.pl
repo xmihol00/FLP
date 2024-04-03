@@ -256,6 +256,7 @@ factorial(N, F) :-
     factorial(Next, Prev), 
     F is N * Prev.
 factorial(0, 1).
+factorial(Negative, 0) :- Negative < 0.
 
 power(X, N, Y) :- 
     N > 0, 
@@ -300,7 +301,7 @@ test_print_cycles([H|T]) :- test_print_cycle(H), test_print_cycles(T).
 test_print_cycle([H|T]) :- write(H), write(' '), test_print_cycle(T).
 test_print_cycle([]) :- nl.
 
-main(Cycles) :-
+main1(Cycles) :-
     parse_input(),
     all_nodes(Nodes), 
     all_edges(Edges),
@@ -315,11 +316,45 @@ main(Cycles) :-
             find_cycles_via_edges(Cycles)
     ).
 
+main2(Cycles) :-
+    parse_input(),
+    all_nodes(Nodes), 
+    all_edges(Edges),
+    length(Nodes, NodesLen),
+    NodesLenDec is NodesLen - 1,
+    length(Edges, EdgesLen),
+    factorial(NodesLenDec, F),
+    EdgesPerNode is EdgesLen / NodesLen,
+    power(EdgesPerNode, NodesLen, P),
+    (
+        F < P -> 
+            find_cycles_via_nodes(Cycles);
+            find_cycles_via_edges(Cycles)
+    ).
+
+
 main_print :-
-    main(Cycles),
+    main1(Cycles),
     print_cycles(Cycles).
 
 main_test_print :-
-    main(Cycles),
+    main1(Cycles),
     test_print_cycles(Cycles).
-    
+
+main_nodes_test_print :-
+    parse_input(),
+    find_cycles_via_nodes(Cycles),
+    test_print_cycles(Cycles).
+
+main_edges_test_print :-
+    parse_input(),
+    find_cycles_via_edges(Cycles),
+    test_print_cycles(Cycles).
+
+main_combined1_test_print :-
+    main1(Cycles),
+    test_print_cycles(Cycles).
+
+main_combined2_test_print :-
+    main2(Cycles),
+    test_print_cycles(Cycles).

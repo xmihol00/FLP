@@ -1,0 +1,21 @@
+A D
+A B
+B E
+B C
+C F
+D G
+D E
+E H
+E F
+F I
+G H
+H I
+I A
+
+test solution:
+A B C F E D G H I
+A D G H E B C F I
+
+print solution:
+A-B B-C C-F F-E E-D D-G G-H H-I I-A
+A-D D-G G-H H-E E-B B-C C-F F-I I-A
