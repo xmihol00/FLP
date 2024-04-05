@@ -1,5 +1,5 @@
 CC=swipl
-CFLAGS=--stack-limit=12g -G12g
+CFLAGS=-G12g
 
 SRC=main.pl
 TARGET=flp23-log
@@ -17,7 +17,7 @@ TARGET_TEST_EDGES = test-flp23-log-edges
 MAIN_TEST_COMBINED = main_combined_test_print
 TARGET_TEST_COMBINED = test-flp23-log-combined
 
-.PHONY: all clean test test_nodes test_edges test_combined 
+.PHONY: all clean test test_nodes test_edges test_combined pack
 
 all:
 	$(CC) $(CFLAGS) -o $(TARGET) -g $(MAIN) -c $(SRC)
@@ -36,3 +36,6 @@ test_combined:
 
 clean:
 	rm -f $(TARGET) $(TARGET_TEST) $(TARGET_TEST_NODES) $(TARGET_TEST_EDGES) $(TARGET_TEST_COMBINED) *.o
+
+pack:
+	zip -r flp-log-xmihol00.zip Makefile README.md main.pl performance_graphs/ hand_solved_graphs/

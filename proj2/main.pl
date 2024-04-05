@@ -35,7 +35,7 @@ parse_input :- read_line(L, C),
                 c) invalid line -> skip and continue parsing (recursive call)
             */
             C == end_of_file;
-	        parse_line(L, A, B), 
+	        parse_line(L, A, B),
                 (
                     /* 
                     if the node predicate does not exists yet, then add any node to the database, 
@@ -67,8 +67,8 @@ parse_input :- read_line(L, C),
                     */
                     edge(B, A); 
                     assert(edge(B, A))
-                ), parse_input();
-            parse_input()
+                ), parse_input; 
+            parse_input
 	    ).
 
 /**
@@ -367,7 +367,7 @@ test_print_cycles([]).
 
 main(Cycles) :-
     /* read the input and parse it */
-    parse_input(),
+    parse_input,
     /* retreive all nodes from the database */
     all_nodes(Nodes),
     /* retreive all edges from the database */
@@ -407,13 +407,13 @@ main_test_print :-
 ----------------------------------------------------------------------------------- */
 /* called when build with 'make test_nodes' */
 main_nodes_test_print :-
-    parse_input(),
+    parse_input,
     find_cycles_via_nodes(Cycles),
     test_print_cycles(Cycles).
 
 /* called when build with 'make test_edges' */
 main_edges_test_print :-
-    parse_input(),
+    parse_input,
     find_cycles_via_edges(Cycles),
     test_print_cycles(Cycles).
 
