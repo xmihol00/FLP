@@ -375,11 +375,11 @@ main(Cycles) :-
     /* get the number of nodes and edges */
     length(Nodes, NodesLength),
     length(Edges, EdgesLength),
-    /* compute the time complexity of the node based search (use stricter number of nodes) */
+    /* compute the time complexity of the node based search */
     factorial(NodesLength, Factorial),
     /* compute the average number of edges per node */
     EdgesPerNode is EdgesLength / NodesLength,
-    /* compute the time complexity of the edge based search */
+    /* compute the time complexity of the edge based search (deduplication part of the complexity is negligable, therefore omitted) */
     power(EdgesPerNode, NodesLength, Power),
     (
         /* choose the solution with smaller time complexity */
