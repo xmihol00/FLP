@@ -8,15 +8,15 @@ author: David Mihola (xmihol00)
 
 ## Directory structure
 ```
-├── hand_solved_graphs/    - graphs with unique hamiltonian cycles found by hand and scripts to test them against the implemented algorithms
+├── hand_solved_graphs/    - graphs with already found all unique hamiltonian cycles and scripts to test the implemented algorithms against them
 ├── main.pl                - implementation of the algorithm with multiple main functions for various tests
-├── Makefile               - commands for building executables launching different main functions
-├── performance_graphs/    - generated graphs without solutions to test the performance of the implemented algorithms, scripts to evaluate the performance and performance plots 
+├── Makefile               - commands for building various executables each launching different main functions 
+├── performance_graphs/    - generated unsolved graphs for performance testing, scripts to evaluate the performance and performance plots of measured results
 └── README.md
 ```
 
 ## Implementation details
-There are two implemented solutions solving the problem. Both solutions use the Prolog database for storing nodes and edges, which should ensure their O(1) lookup, considering that the database is a reasonably balanced hash table.
+There are two implemented solutions solving the problem of finding a set of all hamiltonian cycles. Both solutions use the Prolog database for storing nodes and edges, which should ensure their O(1) lookup, considering that the database is a reasonably balanced hash table.
 
 ### Solution using edges as the search space
 This is the common solution, where paths without repeating nodes starting and finishing in a given node are searched and then deduplicated to ensure uniqueness of each solution. The time complexity, considering that existence of an edge can be evaluated in O(1), of this algorithm is $O(V^E)*O(V)$, where $V$ is the number of nodes in a graph, $E$ is the average branching factor, $O(V^E)$ is the time required for finding a solution and is the time required for deduplication $O(V)$.
@@ -35,4 +35,8 @@ This is a less common solution. First, unique permutations of nodes are generate
 Then each of these permutations is checked against the database of edges if there is a circular path in between the nodes. The time complexity of this solution is $O((V-1)!*V)=O(V!)$.
 
 ## Performance analysis
-Given the time complexities of the two solutions, we can already tell that the first solution will outperform the second one on most graphs.  
+Given the time complexities of the two solutions, we can already tell that the first solution will outperform the second one on most graphs. The small subset of graphs, where the second solution is superior, are close to fully connected graphs, i.e. the number of edges must be much larger than the number of nodes. This theoretical finding is also well supported by the following measurements on four types of graphs: 
+
+| ![circle](./performance_graphs/circle_results.png) | ![fully_connected](./performance_graphs/fully_connected_results.png) |
+|--|--|
+| ![mash](./performance_graphs/2D_mesh_results.png) | ![wrap_around_mesh](./performance_graphs/2D_wrap-around_mesh_results.png) |

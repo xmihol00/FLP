@@ -14,7 +14,9 @@ for test_type in ["circle", "fully_connected", "2D_mesh", "2D_wrap-around_mesh"]
     for results_filename, marker, color in zip(sorted(glob(f"*_{test_type}_results.csv")), ['s', 'D', '*', 'o'], mcolors.TABLEAU_COLORS):
         marker_dict["Success"] = marker
         df = pd.read_csv(results_filename)
-        max_time = df["time"].max()
+        # success_mean = df[df["result"] == "Success"]["time"].mean()
+        # df.loc[df["result"] == "Fail", "time"] = success_mean
+        # df.loc[df["result"] == "Timeout", "time"] = success_mean
         for row in df.itertuples():
             plt.plot(row.Index, row.time, marker=marker_dict[row.result], markersize=10, color=color)
         df.set_index("graph_name", inplace=True)
