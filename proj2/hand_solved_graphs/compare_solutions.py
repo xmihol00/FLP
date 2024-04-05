@@ -85,7 +85,8 @@ if args.output_type == "r" or args.output_type == "regular":
         for tested_solution in invalid_tested_solutions:
             print(tested_solution)
         exit(1)
-if starting_node is not None and tested_solutions[0]:
+
+if starting_node is not None and tested_solutions and tested_solutions[0]:
     # rotate all solutions to start with the selected node
     for i in range(len(tested_solutions)):
         index = tested_solutions[i].index(starting_node)

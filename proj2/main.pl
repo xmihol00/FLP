@@ -26,7 +26,11 @@ read_line(Line, LastChar) :-
 /** 
  * @brief Parses the input and inserts non-duplicit nodes and edges into the database.
  */
-parse_input :- read_line(L, C), 
+parse_input :- 
+    /* ensure even less capable prolog compilers (like swipl on merlin) do not print prompt */
+    prompt(_, ''), 
+    /* read a line from STDIN */
+    read_line(L, C), 
         (
             /* 
             switch into 3 possible cases:
@@ -98,12 +102,12 @@ all_edges(Edges) :- setof([X, Y], edge(X, Y), Edges).
  * @param +Pivot The pivot to rotate the list by.
  * @param -Rotated The rotated list.
  */
-rotate_list(List, Pivot, Rotated) :-
+rotate_list(Pivot, List, Rotated) :-
     /* split the list by the pivot */
     append(Left, [Pivot | Right], List),
     /* append the left part to the right part in reverse order */
     append([Pivot | Right], Left, Rotated).
-rotate_list([], _, []).
+rotate_list(_, [], []).
 
 /**
  * @brief Inserts an element into a list at a position smaller than a given index. The index must not be larger than the length of the list.
@@ -162,7 +166,7 @@ unique_hamiltonian_cycle(Start, UniqueCycle) :-
     /* find any hamiltonian cycle */
     hamiltonian_cycle(Start, Cycle),
     /* convert the cycle to its canonical form, i.e. specific starting element, rest of the list and reversed rest of the list, see README.md for more detail */
-    rotate_list(Cycle, Start, RotatedCycle),
+    rotate_list(Start, Cycle, RotatedCycle),
     [_ | RotatedTail] = RotatedCycle,
     reverse(RotatedTail, ReversedRotatedTail),
     /* succedess if therese is no cycle in the database yet, or the cycle is not in the database yet */
@@ -255,16 +259,17 @@ is_cycle([Last], Initial) :- edge(Last, Initial).
  * @param +Number The number to calculate the factorial of.
  * @param -Factorial The factorial of the given number.
  */
-/* recursive case */
-factorial(Number, Factorial) :- 
-    Number > 0, 
-    Next is Number - 1, 
-    factorial(Next, Previous), 
-    Factorial is Number * Previous.
 /* base case */
 factorial(0, 1).
 /* return 0 instead of fail, when negative input is passed */
 factorial(Negative, 0) :- Negative < 0.
+/* ensure the factorial does not crash on systems with bound integers to 64 bits (e.g. merlin) */
+factorial(TooLarge, Factorial) :- TooLarge > 20, Factorial is 18446744073709551615.
+/* recursive case */
+factorial(Number, Factorial) :- 
+    Next is Number - 1, 
+    factorial(Next, Previous), 
+    Factorial is Number * Previous.
 
 /**
  * @brief Calculates the power of a given base on a given exponent.
@@ -272,14 +277,18 @@ factorial(Negative, 0) :- Negative < 0.
  * @param +Exponent The exponent of the power.
  * @param -Power The power of the base on the exponent.
  */
-/* recursive case */
-power(Base, Exponent, Power) :- 
-    Exponent > 0, 
-    Next is Exponent - 1, 
-    power(Base, Next, Previous), 
-    Power is Base * Previous.
 /* base case */
 power(_, 0, 1).
+/* recursive case */
+power(Base, Exponent, Power) :- 
+    Next is Exponent - 1, 
+    power(Base, Next, Previous), 
+    (
+        /* ensure the power does not crash on systems with bound integers to 64 bits (e.g. merlin) */
+        18446744073709551615 / Base < Previous -> 
+            Power is 18446744073709551615;
+            Power is Base * Previous
+    ).
 
 /**
  * @brief Finds all unique hamiltonian cycles in a graph using nodes as the space of search.
@@ -307,7 +316,7 @@ find_cycles_via_nodes(Cycles) :-
     ),
     [Head | _] = SortedNodes,
     /* rotate all the results to start with the same node */
-    maplist({Head}/[L, O]>>(rotate_list(L, Head, O)), UnrotatedCycles, Cycles).
+    maplist(rotate_list(Head), UnrotatedCycles, Cycles).
 
 /**
  * @brief Finds all unique hamiltonian cycles in a graph using edges as the space of search.
@@ -393,14 +402,16 @@ main(Cycles) :-
  */
 main_print :-
     main(Cycles),
-    print_cycles(Cycles).
+    print_cycles(Cycles),
+    halt.
 
 /**
  * @brief Main predicate for testing, called when build with 'make test'.
  */
 main_test_print :-
     main(Cycles),
-    test_print_cycles(Cycles).
+    test_print_cycles(Cycles),
+    halt.
 
 /* --------------------------------------------------------------------------------
 -- Main predicates for performance analysis, see README.md. 
@@ -409,15 +420,18 @@ main_test_print :-
 main_nodes_test_print :-
     parse_input,
     find_cycles_via_nodes(Cycles),
-    test_print_cycles(Cycles).
+    test_print_cycles(Cycles),
+    halt.
 
 /* called when build with 'make test_edges' */
 main_edges_test_print :-
     parse_input,
     find_cycles_via_edges(Cycles),
-    test_print_cycles(Cycles).
+    test_print_cycles(Cycles),
+    halt.
 
 /* called when build with 'make test_combined' */
 main_combined_test_print :-
     main(Cycles),
-    test_print_cycles(Cycles).
+    test_print_cycles(Cycles),
+    halt.
