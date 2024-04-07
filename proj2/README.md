@@ -42,3 +42,6 @@ Given the time complexities of the two solutions, we can already tell that the f
 | ![mash](./performance_graphs/2D_mesh_results.png) | ![wrap_around_mesh](./performance_graphs/2D_wrap-around_mesh_results.png) |
 
 Consequently, the final algorithm first computes the complexity of the two solutions and then chooses the in theory faster one (*combined* plot in the above graphs).
+
+## Tests
+The prepared tests can be run from the root directory with `./hand_solved_graphs/test_all.sh` for testing the final solution or with `./hand_solved_graphs/test_all_test_print.sh` for testing the separate solutions as well as the combined one.

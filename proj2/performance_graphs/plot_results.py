@@ -26,7 +26,7 @@ for test_type in ["circle", "fully_connected", "2D_mesh", "2D_wrap-around_mesh"]
     plt.yscale("log")
     plt.ylabel("time (s)")
     plt.scatter([list(df.itertuples())[0].Index], [-5], marker="$F$", color="black", label="Fail", s=50)
-    plt.scatter([list(df.itertuples())[0].Index], [-5], marker="$T$", color="black", label="Timeout", s=50)
+    plt.scatter([list(df.itertuples())[1].Index], [-5], marker="$T$", color="black", label="Timeout", s=50)
     plt.legend()
     plt.grid()
     plt.tight_layout()

@@ -22,6 +22,6 @@ A-T,fully_connected,600.0,Timeout
 A-U,fully_connected,600.0,Timeout
 A-V,fully_connected,600.0,Timeout
 A-W,fully_connected,600.0,Timeout
-A-X,fully_connected,300.0,Timeout
-A-Y,fully_connected,300.0,Timeout
-A-Z,fully_connected,300.0,Timeout
+A-X,fully_connected,600.0,Timeout
+A-Y,fully_connected,600.0,Timeout
+A-Z,fully_connected,600.0,Timeout
