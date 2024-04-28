@@ -1,8 +1,9 @@
 /* -----------------------------------------------------------------------------------------------------------------------
---   project: flp23-log (2nd project regarding hamiltonian cycles to Functional and Logic Programming course at FIT, BUT)
---    author: David Mihola (xmihol00)
---     email: xmihol00@stud.fit.vutbr.cz
---      date: 28. 4. 2024
+--    project: flp23-log (2nd project regarding hamiltonian cycles to Functional and Logic Programming course at FIT, BUT)
+-- assignment: Hamiltonian cycles
+--     author: David Mihola (xmihol00)
+--      email: xmihol00@stud.fit.vutbr.cz
+--       date: 28. 4. 2024 (academic year 2023/2024)
 -------------------------------------------------------------------------------------------------------------------------- */
 
 /** 
@@ -370,7 +371,7 @@ test_print_cycles([Head | Tail]) :- test_print_cycle(Head), test_print_cycles(Ta
 test_print_cycles([]).
 
 /* --------------------------------------------------------------------------------
--- main predicates to test, analyze performance and for the final submission
+-- main predicates to test, analyze performance and for the final submission,
 -- see the Makefile and README.md for more details
 ----------------------------------------------------------------------------------- */
 

@@ -1,9 +1,9 @@
-# FLP-LOG (2nd project to Functional and Logic Programming course at FIT, BUT)
+# FLP-LOG - 2nd project to Functional and Logic Programming course at FIT, BUT
 ```
   case: Search of unique hamiltonian cycles in a graph implemented in Prolog.
 author: David Mihola (xmihol00)
  email: xmihol00@stud.fit.vutbr.cz
-  date: 28. 4. 2024
+  date: 28. 4. 2024 (academic year 2023/2024)
 ```
 
 ## Directory structure
@@ -14,6 +14,13 @@ author: David Mihola (xmihol00)
 ├── performance_graphs/    - generated unsolved graphs for performance testing, scripts to evaluate the performance and performance plots of measured results
 └── README.md
 ```
+
+## Usage
+1. Run the command `make`.
+2. Launch the script as `./flp23-log <[input file path and name] >[output file path and name]`, e.g:
+   - `./flp23-log <hand_solved_graphs/circle5_double_cross.txt` (output will be written to STDOUT),
+   - `./flp23-log <hand_solved_graphs/a-z_circle.txt >a-z_circle_solved.out`.
+3. There are other `make` commands available, see the `Makefile`, these commands are used by test scripts.
 
 ## Implementation details
 There are two implemented solutions solving the problem of finding the set of all hamiltonian cycles. Both solutions use the Prolog database for storing nodes and edges, which should ensure their $O(1)$ lookup, considering that the database is a reasonably balanced hash table.
@@ -43,5 +50,9 @@ Given the time complexities of the two solutions, we can already tell that the f
 
 Consequently, the final algorithm first computes the complexity of the two solutions and then chooses the in theory faster one (*combined* plot in the above graphs).
 
+The performance analysis can be replicated by navigating to the `performance_graphs` directory and launching `python3 analyze_performance.py -r -t 600`.
+
 ## Tests
-The prepared tests can be run from the root directory with `./hand_solved_graphs/test_all.sh` for testing the final solution or with `./hand_solved_graphs/test_all_test_print.sh` for testing the separate solutions as well as the combined one.
+The prepared tests can be run from the root directory with `./hand_solved_graphs/test_all.sh` for testing the final combined solution. All the available test cases should finish in an order of hundreds of milliseconds.
+
+The separate solutions as well as the combined one can be tested from the root directory with `./hand_solved_graphs/test_all_test_print.sh`, each test here is limited with a 1 minute of runtime.

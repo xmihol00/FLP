@@ -2,7 +2,6 @@
 *.hi
 hello_world/hello_world
 flp-fun
-*.png
 penguins.csv
 wines.csv
 boston_housing.csv
