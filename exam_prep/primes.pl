@@ -1,8 +1,11 @@
-
 primeTest(X, Y) :- X - 1 =:= Y.
 primeTest(X, Y) :- X mod Y =\= 0, Z is Y + 1, primeTest(X, Z).
-primeTest(X) :- primeTest(X, 2).
 primeTest(2).
+primeTest(X) :- num(X), primeTest(X, 2).
+primeTest(X) :- primeTest(X, 2), !.
+
+num(3).
+num(X) :- \+ number(X), num(Y), X is Y + 1.
 
 inf(3).
 inf(X) :- inf(Y), X is Y + 1.
