@@ -27,5 +27,5 @@ ttol(X) :- (\+ current_predicate(starting_state/3), !, tol(L), tor(R), head(H), 
 findmove([], _) :- fail.
 findmove([move(Symbol, Action)|Moves], A) :- (head(H), H \= Symbol, !, findmove(Moves, A));
                                              (Action == shl, tol([]), !, findmove(Moves, A));
-                                             (A = move(Symbol, Action));
+                                             (A = Action);
                                              (findmove(Moves, A)).

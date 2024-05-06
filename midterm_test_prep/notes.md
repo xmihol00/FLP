@@ -37,6 +37,29 @@ proving with structural induction <var>
 ## Fixed Point
 * `YE = E(YE)`
 
+### MINUS
+```
+LET T = λxy.x    LET Z = isZero
+LET F = λxy.y    LET P = prev   // prev 0 = 0
+LET 0 = λzn.n    LET ADD = +
+
+def MINUS a b:
+    if Z b:
+        return a
+    else:
+        return MINUS (P a) (P b)
+
+LET MINUS = Y(λfab.(Z b)(a)(f (P a) (P b)))
+
+def MUL a b:
+    if Z b:
+        return 0
+    else:
+        return add a (MUL a (P b))
+
+LET MUL = Y(λfab.(Z b)(0)(ADD a (f a (P b))))
+``` 
+
 ## Identity, Equality, Relation
 * Identity: e.g. `λx.x` is identical only to `λx.x`
 * Equality (Relation -> or Relation <-): e.g. `λx.x` is equal to `λy.y` (alpha reduction), but also to `(λxy.y)z` (beta reduction followed by alpha reduction)
