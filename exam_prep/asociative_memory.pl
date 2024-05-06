@@ -1,16 +1,23 @@
-:- dynamic mem/3.
-
-dict(Dict, Key, Value) :- \+ var(Dict), \+ var(Key), \+ var(Value), (retract(mem(Dict, Key, _)); true), assertz(mem(Dict, Key, Value)), !.
-dict(Dict, Key, Value) :- \+ var(Dict), mem(Dict, Key, Value).
-
-member(_, []) :- fail.
-member(X, [X|_]) :- !.
-member(X, [_|T]) :- member(X, T).
-
 :- dynamic mem/2.
 
-keyval(K, V) :- \+ var(K), \+ var(V), !, \+ mem(K, _), assertz(mem(K, V)).
-keyval(K, V) :- \+ var(K), var(V), !, mem(K, V).
-keyval(Ks, V) :- var(Ks), \+ var(V), !, collect(V, [], Ks).
-collect(V, Found, New) :- mem(K, V), \+ member(K, Found), !, Next = [K|Found], collect(V, Next, New).
-collect(_, X, X).
+notElem([], _).
+notElem([H|_], H) :- !, fail.
+notElem([_|T], X) :- notElem(T, X).
+
+keyVal(K, V) :- \+ var(K), \+ var(V), \+ mem(K, _), assertz(mem(K, V)), !.
+keyVal(K, V) :- \+ var(K), var(V), mem(K, V), !.
+keyVal(Ks, V) :- var(Ks), \+ var(V), keyVal([], Ks, V), !.
+keyVal(Kin, Kout, V) :- mem(K, V), notElem(Kin, K), !, keyVal([K|Kin], Kout, V). 
+keyVal(Kin, Kin, _).
+
+getAll(KVs) :- getAll([], KVs).
+getAll(KVsIn, KVsOut) :- mem(K, V), notElem(KVsIn, (K, V)), !, getAll([(K, V)|KVsIn], KVsOut).
+getAll(KVsIn, KVsIn).
+
+fromList([]).
+fromList([(K, V)|T]) :- keyVal(K, V), !, fromList(T).
+fromList([_|T]) :- fromList(T).
+
+remKey(K) :- mem(K, _), retract(mem(K, _)).
+remAll :- retract(mem(_, _)), !, remAll.
+remAll :- true.
